@@ -1,0 +1,12 @@
+services:
+  tracky-clickhouse:
+    container_name: tracky-clickhouse
+    image: clickhouse/clickhouse-server:23.8.14.6-alpine
+    ports:
+      - "8123:8123"
+    volumes:
+      - clickhouse-db:/var/lib/clickhouse/
+
+
+volumes:
+  clickhouse-db:
