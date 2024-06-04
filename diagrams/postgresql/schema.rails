@@ -1,0 +1,75 @@
+Table crypto_assets {
+  id interger [primary key]
+  symbol varchar [not null, unique]
+  name varchar [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]  
+}
+
+Table traditional_assets {
+  id integer [primary key]
+  symbol varchar [not null, unique]
+  name varchar [not null]
+  exchange_name varchar [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]  
+}
+
+Table users_crypto_assets {
+  asset_id integer [ref: > crypto_assets.id, not null]
+  tg_user_id integer [ref: > tg_users.id, not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null] 
+
+  indexes {
+    (asset_id, tg_user_id) [pk]
+  } 
+}
+
+Table users_traditional_assets {
+  asset_id integer [ref: > traditional_assets.id, not null]
+  tg_user_id integer [ref: > tg_users.id, not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null] 
+
+  indexes {
+    (asset_id, tg_user_id) [pk]
+  } 
+}
+
+Table groups_crypto_assets {
+  asset_id integer [ref: > crypto_assets.id, not null]
+  tg_user_id integer [ref: > tg_groups.id, not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null] 
+
+  indexes {
+    (asset_id, tg_user_id) [pk]
+  } 
+}
+
+
+Table groups_traditional_assets {
+  asset_id integer [ref: > traditional_assets.id, not null]
+  tg_user_id integer [ref: > tg_groups.id, not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null] 
+
+  indexes {
+    (asset_id, tg_user_id) [pk]
+  } 
+}
+
+Table tg_users {
+  id integer [primary key]
+  telegram_id varchar [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]  
+}
+
+Table tg_groups {
+  id integer [primary key]
+  telegram_id varchar [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]  
+}

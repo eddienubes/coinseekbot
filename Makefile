@@ -1,2 +1,2 @@
 env:
-	supabase start docker/dev/supabase
+	cd docker/dev && ./up.sh
