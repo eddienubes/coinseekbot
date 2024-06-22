@@ -1,21 +1,29 @@
-from binance.websocket.spot.websocket_client import SpotWebsocketClient as WebsocketClient
+import logging
+import time
 
-def message_handler(message):
-    print(message)
+from binance.lib.utils import config_logging
+from binance.websocket.spot.websocket_stream import SpotWebsocketStreamClient
 
-ws_client = WebsocketClient()
-ws_client.start()
+config_logging(logging, logging.DEBUG)
 
-ws_client.mini_ticker(
-    symbol='bnbusdt',
-    id=1,
-    callback=message_handler,
-)
 
-# Combine selected streams
-ws_client.instant_subscribe(
-    stream=['bnbusdt@bookTicker', 'ethusdt@bookTicker'],
-    callback=message_handler,
-)
+def main():
+    def message_handler(meta, arg):
+        print(meta)
 
-ws_client.stop()
+    ws_client = SpotWebsocketStreamClient(on_message=message_handler)
+
+    ws_client.mini_ticker(
+        symbol='notusdt',
+        callback=message_handler
+    )
+
+    # Combine selected streams
+    # ws_client.subscribe(
+    #     stream=['bnbusdt@bookTicker', 'ethusdt@bookTicker'],
+    #     callback=message_handler,
+    # )
+    ws_client.stop()
+
+
+main()
