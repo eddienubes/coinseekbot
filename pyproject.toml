@@ -15,6 +15,7 @@ apscheduler = "4.0.0a5"
 binance-connector = "^3.7.0"
 alembic = "^1.13.1"
 sqlalchemy = "^2.0.31"
+aioch = "^0.0.2"
 
 
 [build-system]
