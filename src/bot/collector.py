@@ -1,5 +1,5 @@
 from yahoo.yahoo_api_client import YahooApiClient
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+# from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
 class Collector:
@@ -7,7 +7,7 @@ class Collector:
         self.yahoo_api_client = yahoo_api_client
 
     @staticmethod
-    @AsyncIOScheduler.()
+    # @AsyncIOScheduler.()
     def collect_yahoo_ticker_history(self) -> None:
         # TODO: Get symbols from database
         symbols = ['AAPL']

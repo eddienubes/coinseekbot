@@ -1,8 +1,7 @@
-from dataclasses import dataclass
+from pydantic import BaseModel
 
 
-@dataclass(frozen=True)
-class BinanceHotAsset:
+class BinanceHotAsset(BaseModel):
     assetCode: str
     assetName: str
     logoUrl: str

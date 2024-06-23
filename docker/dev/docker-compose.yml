@@ -6,6 +6,9 @@ services:
       test: "curl --fail -I http://localhost:8123/ping || exit 1"
     container_name: tracky-clickhouse
     image: clickhouse/clickhouse-server:23.8.14.6-alpine
+    environment:
+      - CLICKHOUSE_USER=tracky
+      - CLICKHOUSE_PASSWORD=123123
     ports:
       - "8123:8123"
     volumes:
@@ -16,7 +19,7 @@ services:
     container_name: tracky-postgres
     restart: no
     healthcheck:
-      test: "psql -U root tracky -c ''"
+      test: "psql -U tracky tracky -c ''"
       interval: 5s
       timeout: 5s
       retries: 3
@@ -24,7 +27,7 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: root
+      POSTGRES_USER: tracky
       POSTGRES_PASSWORD: 123123
       POSTGRES_DB: tracky
     volumes:

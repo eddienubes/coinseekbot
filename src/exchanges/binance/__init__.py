@@ -1,0 +1,1 @@
+from .binance_assets_query_api import BinanceAssetsQueryApi

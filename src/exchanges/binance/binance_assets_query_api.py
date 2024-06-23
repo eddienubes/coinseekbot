@@ -2,10 +2,10 @@ import asyncio
 
 import aiohttp
 
-from dtos.binance_hot_assets_dto import BinanceHotAssetsDto
+from .dtos.binance_hot_assets_dto import BinanceHotAssetsDto
 
 
-class BinanceAssetsApiClient:
+class BinanceAssetsQueryApi:
     def __init__(self):
         self.session = aiohttp.ClientSession(base_url='https://www.binance.com')
 
@@ -21,5 +21,5 @@ class BinanceAssetsApiClient:
 
     async def get_hot_assets(self) -> BinanceHotAssetsDto:
         res = await self.session.get('/bapi/composite/v1/public/market/hot-coins?currency=USD')
-
-        return await res.json()
+        data = await res.json()
+        return BinanceHotAssetsDto.parse_obj(data)
