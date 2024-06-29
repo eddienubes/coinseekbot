@@ -9,7 +9,7 @@ from inspect import signature
 from utils import AnyCallable
 from .handler import Handler
 
-from config import Config
+from config import config
 
 
 class TelegramBot:
@@ -86,5 +86,5 @@ class TelegramBot:
         return decorator
 
     async def start(self, **kwargs) -> None:
-        bot = Bot(token=Config.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+        bot = Bot(token=config.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
         await TelegramBot.__dp.start_polling(bot, **kwargs)

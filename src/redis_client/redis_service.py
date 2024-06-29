@@ -1,12 +1,12 @@
 from typing import List, Dict
 
-from config import Config
+from config import config
 from redis.asyncio import Redis
 
 
 class RedisService:
     def __init__(self):
-        self.redis = Redis(host=Config.redis_host, port=Config.redis_port, decode_responses=True)
+        self.redis = Redis(host=config.redis_host, port=config.redis_port, decode_responses=True)
 
     async def get(self, key: str) -> str | None:
         return await self.redis.get(key)
