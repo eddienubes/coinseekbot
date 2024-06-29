@@ -1,5 +1,8 @@
 env:
 	cd docker/dev && ./up.sh
+
+down:
+	cd docker/dev && ./down.sh
 	
 bot:
 	export PYTHONPATH="./:./src" && python3 src/bot.py

@@ -19,12 +19,15 @@ sqlalchemy = "^2.0.31"
 aiohttp = "^3.9.5"
 pydantic = "^2.7.4"
 redis = {extras = ["hiredis"], version = "^5.0.7"}
+aioboto3 = "^13.1.0"
+pydantic-settings = "^2.3.4"
 
 
 [tool.poetry.group.dev.dependencies]
 pytest-mock = "^3.14.0"
 pytest = "^8.2.2"
 pytest-asyncio = "^0.23.7"
+types-aioboto3 = {extras = ["essential"], version = "^13.1.0"}
 
 [build-system]
 requires = ["poetry-core"]
