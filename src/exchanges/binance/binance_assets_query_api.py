@@ -22,4 +22,4 @@ class BinanceAssetsQueryApi:
     async def get_hot_assets(self) -> BinanceHotAssetsDto:
         res = await self.session.get('/bapi/composite/v1/public/market/hot-coins?currency=USD')
         data = await res.json()
-        return BinanceHotAssetsDto.parse_obj(data)
+        return BinanceHotAssetsDto.model_validate(data)

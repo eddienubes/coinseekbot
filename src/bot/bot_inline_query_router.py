@@ -4,14 +4,15 @@ from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessag
 
 from exchanges.binance import BinanceAssetsQueryApi
 from bot.telegram_bot import TelegramBot
-from config import Config
 
 
-class BotInlineQueryService:
-    def __init__(self, assets_query_api: BinanceAssetsQueryApi):
-        self.assets_query_api = assets_query_api
+@TelegramBot.router()
+class BotInlineQueryRouter:
+    def __init__(self):
+        self.tg_bot = TelegramBot()
+        self.assets_query_api = BinanceAssetsQueryApi()
 
-    @TelegramBot.dp.inline_query()
+    @TelegramBot.handle_inline_query()
     async def search(self, message: InlineQuery) -> None:
         assets = (await self.assets_query_api.get_hot_assets()).data
 
@@ -30,4 +31,4 @@ class BotInlineQueryService:
                     disable_web_page_preview=True
                 )
             ) for asset in assets
-        ], cache_time=Config.inline_query_cache_time)
+        ], cache_time=1)
