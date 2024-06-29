@@ -1,17 +1,30 @@
 name: tracky
 
 services:
+  tracky-minio:
+    container_name: tracky-minio
+    image: bitnami/minio:2024.6.28
+    ports:
+      - 9000:9000
+      - 9001:9001
+    volumes:
+      - tracky-minio:/data
+    environment:
+      - MINIO_ROOT_USER=tracky
+      - MINIO_ROOT_PASSWORD=123123123
+      - MINIO_DEFAULT_BUCKETS=tracky-public,tracky-private
+  
   tracky-redis:
     container_name: tracky-redis
-    image: redis
+    image: redis:7.2.5-alpine
     ports:
       - "6379:6379"
   
   tracky-clickhouse:
+    image: clickhouse/clickhouse-server:23.8.14.6-alpine
+    container_name: tracky-clickhouse
     healthcheck:
       test: "curl --fail -I http://localhost:8123/ping || exit 1"
-    container_name: tracky-clickhouse
-    image: clickhouse/clickhouse-server:23.8.14.6-alpine
     environment:
       - CLICKHOUSE_USER=tracky
       - CLICKHOUSE_PASSWORD=123123
@@ -44,3 +57,5 @@ volumes:
     name: tracky-ch
   tracky-pg:
     name: tracky-pg
+  tracky-minio:
+    name: tracky-minio
