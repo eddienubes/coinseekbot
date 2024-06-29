@@ -2,19 +2,19 @@ import inspect
 
 from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent
 
-from exchanges.binance import BinanceAssetsQueryApi
+from exchanges.binance import BinanceAssetsQueryService
 from bot.telegram_bot import TelegramBot
 
 
 @TelegramBot.router()
 class BotInlineQueryRouter:
-    def __init__(self):
+    def __init__(self, assets_service: BinanceAssetsQueryService):
         self.tg_bot = TelegramBot()
-        self.assets_query_api = BinanceAssetsQueryApi()
+        self.assets_service = assets_service
 
     @TelegramBot.handle_inline_query()
     async def search(self, message: InlineQuery) -> None:
-        assets = (await self.assets_query_api.get_hot_assets()).data
+        assets = (await self.assets_service.get_hot_assets()).data
 
         await message.answer([
             InlineQueryResultArticle(

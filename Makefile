@@ -6,3 +6,6 @@ bot:
 
 ingest:
 	export PYTHONPATH="./:./src" && python3 src/ingest.py
+	
+test:
+	export PYTHONPATH="./:./src" && pytest 

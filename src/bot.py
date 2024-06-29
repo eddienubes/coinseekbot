@@ -2,13 +2,14 @@ import asyncio
 import logging
 
 from bot import TelegramBot
-from instances import init
+from container import Container
 
 
 async def main():
     logging.basicConfig(level=logging.DEBUG)
 
-    container = await init()
+    container = Container()
+    await container.init()
     tg_bot = container.get(TelegramBot)
     await tg_bot.start()
 
