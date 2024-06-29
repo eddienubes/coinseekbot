@@ -1,3 +1,5 @@
+import pathlib
+
 from typing import List
 
 from exchanges.binance import BinanceAssetsQueryApi
