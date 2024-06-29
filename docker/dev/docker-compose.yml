@@ -1,6 +1,12 @@
 name: tracky
 
 services:
+  tracky-redis:
+    container_name: tracky-redis
+    image: redis
+    ports:
+      - "6379:6379"
+  
   tracky-clickhouse:
     healthcheck:
       test: "curl --fail -I http://localhost:8123/ping || exit 1"
