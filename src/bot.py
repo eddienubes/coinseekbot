@@ -1,15 +1,16 @@
 import asyncio
 import logging
 
-from instances import tg_bot, assets_query_api, init
+from bot import TelegramBot
+from instances import init
 
 
 async def main():
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
 
-    await init()
-    print("Starting bot...")
-    await tg_bot.start(some_service=assets_query_api)
+    container = await init()
+    tg_bot = container.get(TelegramBot)
+    await tg_bot.start()
 
 
 if __name__ == "__main__":

@@ -1,11 +1,10 @@
-import functools
 import logging
-from copy import deepcopy
-from typing import Any, Awaitable, Callable, List, Dict
+from typing import Callable, List, Dict
 
-from aiogram import Dispatcher, Bot, Router
+from aiogram import Dispatcher, Bot
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
+from inspect import signature
 
 from utils import AnyCallable
 from .handler import Handler
@@ -52,19 +51,26 @@ class TelegramBot:
         return decorator
 
     @classmethod
-    def attach_handler(cls, *filters: AnyCallable, handlers_dict: Dict[str, List[Handler]]):
-        def decorator(fn):
-            @functools.wraps(fn)
-            def wrapper(*args, **kwargs):
-                return fn(*args, **kwargs)
+    def handle_message(cls, *filters: AnyCallable) -> Callable:
+        return cls.__attach_handler(*filters, handlers_dict=cls.__message_handlers)
 
+    @classmethod
+    def handle_inline_query(cls, *filters: AnyCallable) -> Callable:
+        return cls.__attach_handler(*filters, handlers_dict=cls.__inline_query_handlers)
+
+    @classmethod
+    def __attach_handler(cls, *filters: AnyCallable, handlers_dict: Dict[str, List[Handler]]):
+        def decorator(fn):
             cls_name = fn.__qualname__.split('.')[0]
 
             handlers = handlers_dict.get(cls_name, [])
 
             def factory(self):
                 async def handler(*args, **kwargs):
-                    await wrapper(self, *args, **kwargs)
+                    sig = signature(fn)
+                    filtered_kwargs = {k: v for k, v in kwargs.items() if k in sig.parameters}
+                    # Strip away unnecessary arguments
+                    await fn(self, *args, **filtered_kwargs)
 
                 return handler
 
@@ -75,17 +81,9 @@ class TelegramBot:
 
             handlers_dict[cls_name] = handlers
 
-            return wrapper
+            return fn
 
         return decorator
-
-    @classmethod
-    def handle_message(cls, *filters: AnyCallable) -> Callable:
-        return cls.attach_handler(*filters, handlers_dict=cls.__message_handlers)
-
-    @classmethod
-    def handle_inline_query(cls, *filters: AnyCallable) -> Callable:
-        return cls.attach_handler(*filters, handlers_dict=cls.__inline_query_handlers)
 
     async def start(self, **kwargs) -> None:
         bot = Bot(token=Config.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
