@@ -4,6 +4,7 @@ import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 path = os.path.abspath(os.path.join(sys.prefix, '..', '.env'))
+print(path)
 
 
 class Config(BaseSettings):

@@ -23,7 +23,7 @@ class S3Service:
     async def on_module_init(self):
         session = aioboto3.Session(
             aws_access_key_id=config.s3_access_key_id,
-            aws_secret_access_key=config.s3_secret_key,
+            aws_secret_access_key=config.s3_access_secret_key,
         )
 
         # noinspection PyTypeChecker
