@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, List, Dict
+from typing import Callable
 
 from aiogram import Dispatcher, Bot
 from aiogram.client.default import DefaultBotProperties
@@ -16,8 +16,8 @@ class TelegramBot:
     __dp = Dispatcher()
     # For each class, we store a list of handler factories.
     # A factory encloses the handler function with provided Aiogram filters.
-    __message_handlers: Dict[str, List[Handler]] = {}
-    __inline_query_handlers: Dict[str, List[Handler]] = {}
+    __message_handlers: dict[str, list[Handler]] = {}
+    __inline_query_handlers: dict[str, list[Handler]] = {}
 
     @classmethod
     def router(cls):
@@ -59,7 +59,7 @@ class TelegramBot:
         return cls.__attach_handler(*filters, handlers_dict=cls.__inline_query_handlers)
 
     @classmethod
-    def __attach_handler(cls, *filters: AnyCallable, handlers_dict: Dict[str, List[Handler]]):
+    def __attach_handler(cls, *filters: AnyCallable, handlers_dict: dict[str, list[Handler]]):
         def decorator(fn):
             cls_name = fn.__qualname__.split('.')[0]
 

@@ -14,7 +14,7 @@ class BotInlineQueryRouter:
 
     @TelegramBot.handle_inline_query()
     async def search(self, message: InlineQuery) -> None:
-        assets = (await self.assets_service.get_hot_assets())
+        assets = (await self.assets_service.get_hot_pairs())
 
         await message.answer([
             InlineQueryResultArticle(

@@ -1,4 +1,4 @@
-from typing import Callable, Any, Awaitable, Tuple
+from typing import Callable, Any, Awaitable 
 
 from dataclasses import dataclass
 
@@ -10,4 +10,4 @@ class Handler:
     # The handler factory function.
     # Requires self to be passed as the first argument.
     factory: Callable[[object], Callable[[..., Any], Awaitable[None]]]
-    filters: Tuple[AnyCallable, ...]
+    filters: tuple[AnyCallable, ...]

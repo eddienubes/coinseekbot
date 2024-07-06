@@ -1,5 +1,3 @@
-from typing import List, Dict
-
 from config import config
 from redis.asyncio import Redis
 
@@ -17,13 +15,13 @@ class RedisService:
     async def delete(self, key: str) -> None:
         return await self.redis.delete(key)
 
-    async def keys(self) -> List[str]:
+    async def keys(self) -> list[str]:
         return await self.redis.keys()
 
     async def flush(self) -> None:
         await self.redis.flushdb()
 
-    async def get_all(self) -> Dict[str, str]:
+    async def get_all(self) -> dict[str, str]:
         keys = await self.keys()
         data = {}
         for key in keys:
