@@ -7,6 +7,6 @@ class BinanceHotPair(DataClassJsonMixin):
     assetCode: str
     assetName: str
     logoUrl: str
-    chartLine: object
+    chartLine: object | None
     symbol: str
-    circulatingSupply: object
+    circulatingSupply: object | None

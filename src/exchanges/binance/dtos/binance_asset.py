@@ -7,11 +7,11 @@ class BinanceAsset(DataClassJsonMixin):
     id: str
     assetCode: str
     assetName: str
-    unit: str
+    unit: str | None
     commissionRate: float
     isLegalMoney: bool
     logoUrl: str
-    fullLogoUrl: str
+    fullLogoUrl: str | None
     tags: list[str]
     delisted: bool
     preDelist: bool

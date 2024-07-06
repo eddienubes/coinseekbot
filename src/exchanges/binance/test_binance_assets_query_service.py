@@ -1,3 +1,4 @@
+import asyncio
 from unittest.mock import AsyncMock
 
 import pytest
@@ -22,8 +23,8 @@ class TestBinanceAssetsQueryService:
 
         yield container, redis_spy
 
-        redis_spy.reset_mock()
         await container.destroy()
+        redis_spy.reset_mock()
 
     @pytest_asyncio.fixture(autouse=True, scope='function')
     async def service(self, setup: tuple[Container]):
