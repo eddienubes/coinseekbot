@@ -22,6 +22,8 @@ redis = {extras = ["hiredis"], version = "^5.0.7"}
 aioboto3 = "^13.1.0"
 pydantic-settings = "^2.3.4"
 dataclasses-json = "^0.6.7"
+networkx = "^3.3"
+asyncpg = "^0.29.0"
 
 
 [tool.poetry.group.dev.dependencies]

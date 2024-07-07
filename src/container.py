@@ -6,6 +6,7 @@ from bot.bot_personal_commands_router import BotPersonalCommandsRouter
 from exchanges.binance import BinanceAssetsQueryApi
 from bot.telegram_bot import TelegramBot
 from exchanges.binance.binance_assets_query_service import BinanceAssetsQueryService
+from postgres.postgres_service import PostgresService
 from redis_client import RedisService
 
 
@@ -34,13 +35,16 @@ class Container:
 
         bot_inline_query_handler = BotInlineQueryRouter(binance_assets_service)
 
+        postgres_service = PostgresService()
+
         instances = [
             tg_bot,
             assets_query_api,
             bot_inline_query_handler,
             bot_personal_commands_handler,
             binance_assets_service,
-            redis_service
+            redis_service,
+            postgres_service
         ]
 
         for instance in instances:

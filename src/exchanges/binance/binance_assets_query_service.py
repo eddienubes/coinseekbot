@@ -1,5 +1,3 @@
-import json
-
 from exchanges.binance import BinanceAssetsQueryApi
 from exchanges.binance.dtos.binance_hot_pair import BinanceHotPair
 from exchanges.binance.dtos.binance_hot_pairs_dto import BinanceHotPairsDto

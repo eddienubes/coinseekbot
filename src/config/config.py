@@ -4,7 +4,6 @@ import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 path = os.path.abspath(os.path.join(sys.prefix, '..', '.env'))
-print(path)
 
 
 class Config(BaseSettings):
@@ -26,6 +25,15 @@ class Config(BaseSettings):
     s3_access_key_id: str
     s3_access_secret_key: str
     s3_endpoint_url: str
+
+    #
+    # Postgres
+    #
+    postgres_user: str
+    postgres_pass: str
+    postgres_db: str
+    postgres_host: str
+    postgres_port: int
 
 
 config = Config()
