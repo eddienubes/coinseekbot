@@ -1,5 +1,3 @@
-from asyncio import StreamReader
-
 import aiohttp
 import pytest
 import pytest_asyncio

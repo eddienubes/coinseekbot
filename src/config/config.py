@@ -7,7 +7,7 @@ path = os.path.abspath(os.path.join(sys.prefix, '..', '.env'))
 
 
 class Config(BaseSettings):
-    model_config = SettingsConfigDict(env_file=path)
+    model_config = SettingsConfigDict(env_file=path, extra='allow')
 
     bot_token: str
 
@@ -34,6 +34,10 @@ class Config(BaseSettings):
     postgres_db: str
     postgres_host: str
     postgres_port: int
+
+    def __init__(self, **values):
+        super().__init__(**values)
+        self.postgres_url = f'postgresql+asyncpg://{self.postgres_user}:{self.postgres_pass}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}'
 
 
 config = Config()

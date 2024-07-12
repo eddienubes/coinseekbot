@@ -1,6 +1,13 @@
+from sqlalchemy import TIMESTAMP, func
 from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.orm import declarative_base, mapped_column
 
 from config import config
+
+
+class Base(declarative_base()):
+    created_at = mapped_column(TIMESTAMP, server_default=func.now(), nullable=False)
+    updated_at = mapped_column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
 
 
 class PostgresService:

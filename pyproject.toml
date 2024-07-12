@@ -15,7 +15,6 @@ pandas = "^2.2.2"
 apscheduler = "4.0.0a5"
 binance-connector = "^3.7.0"
 alembic = "^1.13.1"
-sqlalchemy = "^2.0.31"
 aiohttp = "^3.9.5"
 pydantic = "^2.7.4"
 redis = {extras = ["hiredis"], version = "^5.0.7"}
@@ -24,6 +23,7 @@ pydantic-settings = "^2.3.4"
 dataclasses-json = "^0.6.7"
 networkx = "^3.3"
 asyncpg = "^0.29.0"
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.31"}
 
 
 [tool.poetry.group.dev.dependencies]
