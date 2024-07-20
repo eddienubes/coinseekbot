@@ -1,1 +1,1 @@
-from .postgres_repo import *
+from .postgres_service import *

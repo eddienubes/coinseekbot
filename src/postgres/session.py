@@ -1,24 +1,22 @@
 import functools
-from typing import Callable, Type
+from typing import Callable
 
-from .repository import Repository
+from .pg_engine import PgEngine
 
 
-def session(repo_type: Type[Repository]) -> Callable:
+def session(engine: PgEngine) -> Callable:
     def decorator(func: Callable) -> Callable:
-        from container import Container
-
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
-            repository: Repository = Container().get(repo_type)
-            db_session = repository.get_session()
+            db_session = engine.get_session()
 
+            # Some operations are only allowed at the top level.
+            # Otherwise, the caller is responsible for committing/reverting/closing the transaction.
             top_level = db_session is None
 
             try:
-
                 if top_level:
-                    db_session = repository.create_session()
+                    db_session = engine.create_session()
 
                 result = await func(*args, **kwargs, session=db_session)
 
@@ -27,8 +25,6 @@ def session(repo_type: Type[Repository]) -> Callable:
 
                 return result
             except Exception as e:
-                # Only if we are the top level caller.
-                # Otherwise, the caller is responsible for committing the transaction.
                 if top_level:
                     await db_session.rollback()
                 raise e

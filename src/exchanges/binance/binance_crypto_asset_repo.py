@@ -1,9 +1,9 @@
+from postgres.repository import Repository
 from utils import faker
 from .entities.binance_crypto_asset import BinanceCryptoAsset
-from postgres import PostgresRepo
 
 
-class BinanceCryptoAssetRepo(PostgresRepo):
+class BinanceCryptoAssetRepo(Repository):
     def generate(self) -> BinanceCryptoAsset:
         asset = BinanceCryptoAsset(
             name=faker.cryptocurrency_name(),
