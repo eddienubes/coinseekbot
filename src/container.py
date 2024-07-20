@@ -6,18 +6,24 @@ from bot.bot_personal_commands_router import BotPersonalCommandsRouter
 from exchanges.binance import BinanceAssetsQueryApi
 from bot.telegram_bot import TelegramBot
 from exchanges.binance.binance_assets_query_service import BinanceAssetsQueryService
-from postgres.postgres_service import PostgresService
+from postgres.postgres_repo import PostgresRepo
 from redis_client import RedisService
+from utils.singleton import Singleton
 
 
-class Container:
+class Container(metaclass=Singleton):
+    """Singleton IoC container"""
     __T = TypeVar('__T')
 
     # Run all async initializers
     def __init__(self):
         self.container = dict()
+        self.__initialized = False
 
     def get(self, cls: Type[__T]) -> __T:
+        if not self.__initialized:
+            raise ValueError("Container is not initialized")
+
         instance = self.container.get(cls)
         if not instance:
             raise ValueError(f"Instance of {cls} not found in container")
@@ -35,7 +41,7 @@ class Container:
 
         bot_inline_query_handler = BotInlineQueryRouter(binance_assets_service)
 
-        postgres_service = PostgresService()
+        postgres_service = PostgresRepo()
 
         instances = [
             tg_bot,
@@ -56,9 +62,12 @@ class Container:
             if callable(on_module_init):
                 await on_module_init()
 
+        self.__initialized = True
+
     async def destroy(self):
         for instance in self.container.values():
             on_module_destroy = getattr(instance, "on_module_destroy", None)
             if callable(on_module_destroy):
                 await on_module_destroy()
         self.container.clear()
+        self.__initialized = False

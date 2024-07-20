@@ -9,7 +9,7 @@ from alembic import context
 
 from config import config as app_config
 from postgres.alembic.entities import register_entities
-from postgres.postgres_service import Base
+from postgres.postgres_repo import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
