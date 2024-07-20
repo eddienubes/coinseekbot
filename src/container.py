@@ -6,6 +6,7 @@ from bot.bot_personal_commands_router import BotPersonalCommandsRouter
 from exchanges.binance import BinanceAssetsQueryApi
 from bot.telegram_bot import TelegramBot
 from exchanges.binance.binance_assets_query_service import BinanceAssetsQueryService
+from exchanges.binance.binance_crypto_asset_repo import BinanceCryptoAssetRepo
 from postgres.postgres_repo import PostgresRepo
 from redis_client import RedisService
 from utils.singleton import Singleton
@@ -41,7 +42,8 @@ class Container(metaclass=Singleton):
 
         bot_inline_query_handler = BotInlineQueryRouter(binance_assets_service)
 
-        postgres_service = PostgresRepo()
+        postgres_repo = PostgresRepo()
+        binance_crypto_asset_repo = BinanceCryptoAssetRepo()
 
         instances = [
             tg_bot,
@@ -50,7 +52,8 @@ class Container(metaclass=Singleton):
             bot_personal_commands_handler,
             binance_assets_service,
             redis_service,
-            postgres_service
+            postgres_repo,
+            binance_crypto_asset_repo
         ]
 
         for instance in instances:

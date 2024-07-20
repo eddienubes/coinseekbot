@@ -11,7 +11,7 @@ services:
       - tracky-minio:/data
     environment:
       - MINIO_ROOT_USER=tracky
-      - MINIO_ROOT_PASSWORD=tracky
+      - MINIO_ROOT_PASSWORD=123123123
       - MINIO_DEFAULT_BUCKETS=tracky-public,tracky-private
   
   tracky-redis:

@@ -2,17 +2,17 @@ import functools
 from typing import Callable, Type
 
 from .repository import Repository
-from .postgres_repo import PostgresRepo
-from container import Container
 
 
 def session(repo_type: Type[Repository]) -> Callable:
     def decorator(func: Callable) -> Callable:
-        repository: Repository = Container().get(repo_type)
+        from container import Container
 
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
+            repository: Repository = Container().get(repo_type)
             db_session = repository.get_session()
+
             top_level = db_session is None
 
             try:
@@ -39,7 +39,3 @@ def session(repo_type: Type[Repository]) -> Callable:
         return wrapper
 
     return decorator
-
-
-# Decorator to create a session around current async context
-pg_session = session(PostgresRepo)
