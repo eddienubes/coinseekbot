@@ -1,3 +1,4 @@
+import asyncio
 import pytest
 
 from container import Container
@@ -7,6 +8,12 @@ from exchanges.binance.entities.binance_crypto_asset import BinanceCryptoAsset
 
 class TestBinanceCryptoAssetRepository:
     @pytest.fixture(autouse=True, scope='session')
+    async def event_loop(self):
+        loop = asyncio.get_event_loop_policy().new_event_loop()
+        yield loop
+        loop.close()
+
+    @pytest.fixture(autouse=True, scope='class')
     async def repo(self):
         container = Container()
         await container.init()

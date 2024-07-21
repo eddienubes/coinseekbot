@@ -1,3 +1,4 @@
+import logging
 from contextvars import ContextVar, Context, copy_context
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
@@ -9,9 +10,10 @@ from .database_context import DatabaseContext
 class PgEngine:
     def __init__(self):
         self.__engine = create_async_engine(
-            f'postgresql+asyncpg://{config.postgres_user}:{config.postgres_pass}@{config.postgres_host}:{config.postgres_port}/{config.postgres_db}',
-            echo=True
+            f'postgresql+asyncpg://{config.postgres_user}:{config.postgres_pass}@{config.postgres_host}:{config.postgres_port}/{config.postgres_db}'
         )
+        logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+
         self.__factory = async_sessionmaker(bind=self.__engine, expire_on_commit=False)
         self.__ctx: ContextVar[DatabaseContext | None] = ContextVar('pg_ctx', default=None)
 
@@ -45,7 +47,7 @@ class PgEngine:
 
     async def dispose(self) -> None:
         """Disposes the engine."""
-        await self.__engine.dispose(close=True)
+        await self.__engine.dispose()
 
 
 pg_engine = PgEngine()
