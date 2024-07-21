@@ -63,7 +63,7 @@ class SessionContext:
     def wrap(self, func: Callable[__P, __RV]) -> Callable[__P, __RV]:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
-            self.__logger.debug(f'Inspecting for {func.__name__}')
+            self.__logger.debug(f'Inspect method: {func.__name__}')
             ctx = self.get_ctx()
 
             # Some operations are only allowed at the top level.

@@ -1,10 +1,12 @@
 import asyncio
+
 import pytest
 
 from container import Container
 from exchanges.binance.binance_crypto_asset_repo import BinanceCryptoAssetRepo
 from exchanges.binance.entities.binance_crypto_asset import BinanceCryptoAsset
 from postgres.pg_session import pg_session_ctx
+from utils import faker
 
 
 class TestBinanceCryptoAssetRepository:
@@ -25,8 +27,7 @@ class TestBinanceCryptoAssetRepository:
     @pytest.mark.asyncio
     async def test_create_assets_within_single_ctx(self, repo: BinanceCryptoAssetRepo):
         async def impl():
-            asset = repo.generate()
-            await repo.add(asset)
+            asset = await repo.generate()
 
             await repo.flush()
 
@@ -39,11 +40,22 @@ class TestBinanceCryptoAssetRepository:
         )
 
     async def test_create_assets_within_separate_ctx(self, repo: BinanceCryptoAssetRepo):
-        asset = repo.generate()
-        await repo.add(asset)
+        asset = await repo.generate()
 
         # Flush isn't needed here because the transaction is already committed.
 
         found_asset = await repo.get(BinanceCryptoAsset, [asset.uuid])
 
         assert found_asset == asset
+
+    async def test_retrieve_non_existent_assets(self, repo: BinanceCryptoAssetRepo):
+        asset1 = await repo.generate()
+        asset2 = await repo.generate()
+
+        tickers = [asset1.ticker, asset2.ticker, faker.pystr(10, 10)]
+
+        assets = await repo.get_non_existent_tickers(tickers)
+
+        assert len(assets) == 1
+
+        assert assets[0] == tickers[2]
