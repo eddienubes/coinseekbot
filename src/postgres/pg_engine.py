@@ -23,4 +23,5 @@ class PgEngine:
         await self.__engine.dispose()
 
 
+# TODO: Maybe move to the container?
 pg_engine = PgEngine()
