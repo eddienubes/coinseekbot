@@ -4,7 +4,9 @@ from contextvars import Context
 from typing import Callable, TypeVar, Any
 
 
-class ContextFactory:
+class IsolatedContext:
+    """A factory for creating isolated contexts."""
+
     __RV = TypeVar('__RV', bound=Any)
     __logger = logging.getLogger('context-factory')
 

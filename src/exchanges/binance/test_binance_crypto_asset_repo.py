@@ -22,9 +22,14 @@ class TestBinanceCryptoAssetRepository:
         await container.destroy()
 
     async def test_create_assets(self, repo: BinanceCryptoAssetRepo):
+        # async def impl():
         asset = repo.generate()
         await repo.add(asset)
 
         found_asset = await repo.get(BinanceCryptoAsset, [asset.uuid])
 
         assert found_asset == asset
+
+        # await pg_session_ctx.run(
+        #     impl
+        # )
