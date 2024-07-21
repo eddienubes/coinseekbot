@@ -1,4 +1,4 @@
-from contextvars import ContextVar
+from contextvars import ContextVar, Context, copy_context
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
@@ -12,30 +12,32 @@ class PgEngine:
             f'postgresql+asyncpg://{config.postgres_user}:{config.postgres_pass}@{config.postgres_host}:{config.postgres_port}/{config.postgres_db}',
             echo=True
         )
-        self.__factory = async_sessionmaker(expire_on_commit=False)
+        self.__factory = async_sessionmaker(bind=self.__engine, expire_on_commit=False)
         self.__ctx: ContextVar[DatabaseContext | None] = ContextVar('pg_ctx', default=None)
 
-    def get_session(self) -> AsyncSession | None:
-        """Gets session from the context."""
+    def get_ctx(self) -> DatabaseContext | None:
+        """Gets current database context."""
         db_ctx = self.__ctx.get()
-        return db_ctx.session if db_ctx else None
+        return db_ctx
 
-    def try_get_session(self) -> AsyncSession:
-        """Tries to get session from the context."""
-        session = self.get_session()
+    def try_get_ctx(self) -> DatabaseContext:
+        """Tries to get current database context."""
+        ctx = self.get_ctx()
 
-        if session is None:
+        if ctx is None:
             raise ValueError('You are executing a database operation outside of a session context.')
 
-        return session
+        return ctx
 
-    def create_session(self) -> AsyncSession:
-        """Creates and sets session in the context."""
+    def set_ctx(self, fn_name: str = None) -> DatabaseContext:
+        """Creates and returns database execution context."""
         session = self.__factory()
 
-        self.__ctx.set(DatabaseContext(session=session))
+        ctx = DatabaseContext(session=session)
 
-        return session
+        self.__ctx.set(DatabaseContext(session=session, fn_name=fn_name))
+
+        return ctx
 
     def delete_session(self) -> None:
         """Deletes session from the context."""
@@ -43,7 +45,7 @@ class PgEngine:
 
     async def dispose(self) -> None:
         """Disposes the engine."""
-        await self.__engine.dispose()
+        await self.__engine.dispose(close=True)
 
 
 pg_engine = PgEngine()
