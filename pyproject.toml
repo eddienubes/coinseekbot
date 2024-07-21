@@ -30,8 +30,8 @@ faker = "^26.0.0"
 [tool.poetry.group.dev.dependencies]
 pytest-mock = "^3.14.0"
 pytest = "^8.2.2"
-pytest-asyncio = "^0.23.7"
 types-aioboto3 = {extras = ["essential"], version = "^13.1.0"}
+pytest-asyncio = "^0.23.8"
 
 [build-system]
 requires = ["poetry-core"]
@@ -40,4 +40,5 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 log_cli = true
 console_output_style = 'count'
-addopts = '-rP'
+addopts = '-rP --log-cli-level=DEBUG'
+asyncio_mode = 'auto'

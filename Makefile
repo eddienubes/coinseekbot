@@ -13,8 +13,8 @@ ingest:
 test:
 	export PYTHONPATH="./:./src" && pytest 
 
-migrate-generate:
-	alembic -c src/postgres/alembic/alembic.ini revision --autogenerate -m $(name)
+migrate-gen:
+	alembic -c src/postgres/alembic/alembic.ini revision --autogenerate
 	
 migrate-pg:
 	alembic -c src/postgres/alembic/alembic.ini upgrade head
