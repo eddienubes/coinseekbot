@@ -1,6 +1,6 @@
-from exchanges.binance import BinanceAssetsQueryApi
-from exchanges.binance.dtos.binance_hot_pair import BinanceHotPair
-from exchanges.binance.dtos.binance_asset import BinanceAsset
+from .binance_assets_query_api import BinanceAssetsQueryApi
+from .dtos.binance_hot_pair import BinanceHotPair
+from .dtos.binance_asset import BinanceAsset
 from redis_client import RedisService
 
 

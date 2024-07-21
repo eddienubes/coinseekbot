@@ -1,4 +1,4 @@
-from exchanges.binance.dtos.binance_asset import BinanceAsset
+from .binance_asset import BinanceAsset
 from dataclasses import dataclass
 from dataclasses_json import DataClassJsonMixin
 

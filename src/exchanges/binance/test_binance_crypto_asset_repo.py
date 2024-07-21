@@ -3,8 +3,8 @@ import asyncio
 import pytest
 
 from container import Container
-from exchanges.binance.binance_crypto_asset_repo import BinanceCryptoAssetRepo
-from exchanges.binance.entities.binance_crypto_asset import BinanceCryptoAsset
+from .binance_crypto_asset_repo import BinanceCryptoAssetRepo
+from .entities.binance_crypto_asset import BinanceCryptoAsset
 from postgres.pg_session import pg_session_ctx
 from utils import faker
 

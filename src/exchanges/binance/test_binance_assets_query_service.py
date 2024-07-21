@@ -1,4 +1,3 @@
-import asyncio
 from unittest.mock import AsyncMock
 
 import pytest
@@ -6,7 +5,7 @@ import pytest_asyncio
 from pytest_mock import MockerFixture
 
 from container import Container
-from exchanges.binance import BinanceAssetsQueryService
+from . import BinanceAssetsQueryService
 from redis_client import RedisService
 
 

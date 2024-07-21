@@ -1,7 +1,14 @@
+import sys
+
 from sqlalchemy import String, UUID, func
 from sqlalchemy.orm import mapped_column, Mapped
 
 from postgres.base import Base
+
+print("SHOULD RUN ONCE")
+
+
+# print([key for key in sys.modules.keys() if 'binance_crypto_asset' in key])
 
 
 class BinanceCryptoAsset(Base):

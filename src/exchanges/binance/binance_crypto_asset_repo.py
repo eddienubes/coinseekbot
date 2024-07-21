@@ -1,10 +1,10 @@
-from typing import Sequence
-
 from sqlalchemy import select
 
+from .entities.binance_crypto_asset import BinanceCryptoAsset
 from postgres import PgRepo, pg_session
 from utils import faker
-from .entities.binance_crypto_asset import BinanceCryptoAsset
+
+print("crypto asset repo")
 
 
 class BinanceCryptoAssetRepo(PgRepo):
