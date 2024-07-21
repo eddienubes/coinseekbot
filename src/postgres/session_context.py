@@ -1,19 +1,18 @@
 import functools
 import logging
 from contextvars import ContextVar
-from typing import Callable, TypeVar, Any
+from typing import Callable, TypeVar, Any, ParamSpec
 
 from utils import IsolatedContext
 from .database_context import DatabaseContext
 from .pg_engine import PgEngine
-
-P = TypeVar('P', bound=Callable[..., Any])
 
 
 class SessionContext:
     """A factory for creating session scopes."""
 
     __RV = TypeVar('__RV', bound=Any)
+    __P = ParamSpec('__P')
 
     def __init__(self, engine: PgEngine):
         self.__engine = engine
@@ -57,11 +56,11 @@ class SessionContext:
         """Deletes session from the context."""
         self.__ctx.set(None)
 
-    def run(self, func: Callable[..., __RV]) -> __RV:
+    def run(self, func: Callable[..., __RV], *args, **kwargs) -> __RV:
         wrapped = self.wrap(func)
-        return wrapped()
+        return wrapped(*args, **kwargs)
 
-    def wrap(self, func: Callable[..., __RV]) -> Callable[..., __RV]:
+    def wrap(self, func: Callable[__P, __RV]) -> Callable[__P, __RV]:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             self.__logger.debug(f'Inspecting for {func.__name__}')
@@ -71,6 +70,7 @@ class SessionContext:
             # Otherwise, the caller is responsible for committing/reverting/closing the transaction.
             top_level = ctx is None
 
+            @functools.wraps(func)
             async def within_ctx(*args, **kwargs):
                 self.__logger.debug(f'Top level: {top_level}, session: {ctx}')
 
@@ -104,9 +104,17 @@ class SessionContext:
                         self.__logger.debug(f'Closing session for {func.__name__}')
                         await db_session.close()
 
-            return await IsolatedContext().run(within_ctx, *args, **kwargs)
+            # If top level, create a new isolated context
+            if top_level:
+                return await IsolatedContext().run(within_ctx, *args, **kwargs)
+
+            # Otherwise, keep using existing context and its session
+            return await within_ctx(*args, **kwargs)
 
         return wrapper
+
+
+P = TypeVar('P', bound=Callable[..., Any])
 
 
 def session(scope: SessionContext) -> Callable[[P], P]:

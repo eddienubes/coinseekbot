@@ -14,6 +14,12 @@ class Repo:
     def __init__(self, ctx: SessionContext):
         self.__ctx = ctx
 
+        self.add = self.__ctx.wrap(self.add)
+        self.add_all = self.__ctx.wrap(self.add_all)
+        self.delete = self.__ctx.wrap(self.delete)
+        self.delete_all = self.__ctx.wrap(self.delete_all)
+        self.get = self.__ctx.wrap(self.get)
+
     async def add(self, entity: Base) -> None:
         """Adds entity to the session."""
         self.session.add(entity)
@@ -34,7 +40,7 @@ class Repo:
         """Gets entity from the session."""
         return await self.session.get(entity, ident=key, **kwargs)
 
-    async def flush(self, session: AsyncSession) -> None:
+    async def flush(self, session: AsyncSession = None) -> None:
         """Flushes the session."""
 
         ctx = self.__ctx.get_ctx()
@@ -46,7 +52,7 @@ class Repo:
 
         await session.flush()
 
-    async def commit(self, session: AsyncSession) -> None:
+    async def commit(self, session: AsyncSession = None) -> None:
         ctx = self.__ctx.get_ctx()
 
         if session is None and ctx is None:
@@ -58,4 +64,4 @@ class Repo:
 
     @property
     def session(self) -> AsyncSession:
-        return self.__ctx.get_or_create_ctx().session
+        return self.__ctx.try_get_ctx().session
