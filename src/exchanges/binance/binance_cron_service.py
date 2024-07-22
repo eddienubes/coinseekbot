@@ -28,7 +28,9 @@ class BinanceCronService:
 
     @pg_session
     async def ingest_assets(self) -> None:
-        """Create available on binance assets"""
+        """Create available on binance assets
+        TODO: Perhaps, we should literally truncate the entire table and re-ingest all assets
+        """
         assets = await self.__binance_assets_query_api.get_all_assets()
 
         hm = dict()
