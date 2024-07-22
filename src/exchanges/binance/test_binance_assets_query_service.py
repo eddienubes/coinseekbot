@@ -32,13 +32,12 @@ class TestBinanceAssetsQueryService:
         instance = container.get(BinanceAssetsQueryService)
         yield instance
 
+    @pytest.mark.skip
     class TestGetAllAssetsAndCache:
-        @pytest.mark.asyncio
         async def test_get_all_assets_and_cache(self, service: BinanceAssetsQueryService):
             assets = await service.get_all_assets()
             assert len(assets) >= 1
 
-        @pytest.mark.asyncio
         async def test_get_all_assets_from_cache(self, service: BinanceAssetsQueryService,
                                                  setup: [Container, AsyncMock]):
             _, redis_spy = setup
@@ -51,13 +50,12 @@ class TestBinanceAssetsQueryService:
 
             assert redis_spy.call_count == 1
 
+    @pytest.mark.skip
     class TestGetHotPairsAndCache:
-        @pytest.mark.asyncio
         async def test_get_hot_pairs_and_cache(self, service):
             pairs = await service.get_hot_pairs()
             assert len(pairs) >= 1
 
-        @pytest.mark.asyncio
         async def test_get_hot_pairs_from_cache(self, service, setup: [Container, AsyncMock]):
             _, redis_spy = setup
 

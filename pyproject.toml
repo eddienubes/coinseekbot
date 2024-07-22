@@ -32,6 +32,7 @@ pytest-mock = "^3.14.0"
 pytest = "^8.2.2"
 types-aioboto3 = {extras = ["essential"], version = "^13.1.0"}
 pytest-asyncio = "^0.23.8"
+pyhamcrest = "^2.1.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -40,5 +41,5 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 log_cli = true
 console_output_style = 'count'
-addopts = '-rP --log-cli-level=DEBUG'
+addopts = '-rP --log-cli-level=ERROR --capture=no'
 asyncio_mode = 'auto'

@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: e2d012961845
+Revision ID: 0a9d8083df48
 Revises: 
-Create Date: 2024-07-21 08:20:12.944672
+Create Date: 2024-07-21 22:20:53.083108
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'e2d012961845'
+revision: str = '0a9d8083df48'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,11 +24,10 @@ def upgrade() -> None:
     sa.Column('uuid', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('ticker', sa.String(), nullable=False),
-    sa.Column('logo_url_s3_key', sa.String(), nullable=False),
+    sa.Column('logo_s3_key', sa.String(), nullable=False),
     sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('uuid'),
-    sa.UniqueConstraint('name'),
     sa.UniqueConstraint('ticker')
     )
     # ### end Alembic commands ###

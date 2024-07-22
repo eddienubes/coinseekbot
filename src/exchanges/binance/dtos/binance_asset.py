@@ -5,8 +5,8 @@ from dataclasses_json import DataClassJsonMixin
 @dataclass
 class BinanceAsset(DataClassJsonMixin):
     id: str
-    assetCode: str
-    assetName: str
+    assetCode: str | None
+    assetName: str | None
     unit: str | None
     commissionRate: float
     isLegalMoney: bool

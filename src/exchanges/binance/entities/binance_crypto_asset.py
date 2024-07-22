@@ -1,20 +1,13 @@
-import sys
-
 from sqlalchemy import String, UUID, func
 from sqlalchemy.orm import mapped_column, Mapped
 
 from postgres.base import Base
 
-print("SHOULD RUN ONCE")
-
-
-# print([key for key in sys.modules.keys() if 'binance_crypto_asset' in key])
-
 
 class BinanceCryptoAsset(Base):
     __tablename__ = 'binance_crypto_assets'
 
-    uuid: Mapped[str] = mapped_column(UUID, init=False, primary_key=True, server_default=func.gen_random_uuid())
-    name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    uuid: Mapped[UUID] = mapped_column(UUID, primary_key=True, server_default=func.gen_random_uuid())
+    name: Mapped[str] = mapped_column(String, unique=False, nullable=False)
     ticker: Mapped[str] = mapped_column(String, unique=True, nullable=False)
-    logo_url_s3_key: Mapped[str] = mapped_column(String, nullable=False)
+    logo_s3_key: Mapped[str] = mapped_column(String, nullable=False)

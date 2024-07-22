@@ -1,6 +1,8 @@
 import asyncio
-
 import pytest
+from hamcrest import assert_that, equal_to, has_properties, instance_of, anything, is_, contains, contains_inanyorder, \
+    has_items
+from asyncpg.pgproto.pgproto import UUID
 
 from container import Container
 from .binance_crypto_asset_repo import BinanceCryptoAssetRepo
@@ -9,13 +11,7 @@ from postgres.pg_session import pg_session_ctx
 from utils import faker
 
 
-class TestBinanceCryptoAssetRepository:
-    @pytest.fixture(autouse=True, scope='session')
-    async def event_loop(self):
-        loop = asyncio.get_event_loop_policy().new_event_loop()
-        yield loop
-        loop.close()
-
+class TestBinanceCryptoAssetRepo:
     @pytest.fixture(autouse=True, scope='class')
     async def repo(self):
         container = Container()
@@ -24,7 +20,6 @@ class TestBinanceCryptoAssetRepository:
         yield repo
         await container.destroy()
 
-    @pytest.mark.asyncio
     async def test_create_assets_within_single_ctx(self, repo: BinanceCryptoAssetRepo):
         async def impl():
             asset = await repo.generate()
@@ -46,7 +41,11 @@ class TestBinanceCryptoAssetRepository:
 
         found_asset = await repo.get(BinanceCryptoAsset, [asset.uuid])
 
-        assert found_asset == asset
+        assert_that(asset, has_properties(
+            **found_asset.to_dict(
+                uuid=equal_to(asset.uuid)
+            )
+        ))
 
     async def test_retrieve_non_existent_assets(self, repo: BinanceCryptoAssetRepo):
         asset1 = await repo.generate()
@@ -59,3 +58,54 @@ class TestBinanceCryptoAssetRepository:
         assert len(assets) == 1
 
         assert assets[0] == tickers[2]
+
+    async def test_insert_asset(self, repo: BinanceCryptoAssetRepo):
+        asset = BinanceCryptoAsset(
+            uuid=faker.uuid4(),
+            name=faker.pystr(3, 10),
+            ticker=faker.pystr(3, 10),
+            logo_s3_key=faker.image_url()
+        )
+
+        inserted_asset = await repo.insert(asset)
+
+        assert_that(inserted_asset, has_properties(
+            uuid=instance_of(UUID),
+            name=equal_to(asset.name),
+            ticker=equal_to(asset.ticker),
+            logo_s3_key=equal_to(asset.logo_s3_key)
+        ))
+
+    async def test_insert_many_assets(self, repo: BinanceCryptoAssetRepo):
+        assets = [
+            BinanceCryptoAsset(
+                uuid=faker.uuid4(),
+                name=faker.pystr(3, 10),
+                ticker=faker.pystr(3, 10),
+                logo_s3_key=faker.image_url()
+            ),
+            BinanceCryptoAsset(
+                uuid=faker.uuid4(),
+                name=faker.pystr(3, 10),
+                ticker=faker.pystr(3, 10),
+                logo_s3_key=faker.image_url()
+            )
+        ]
+
+        inserted_assets = await repo.insert_many(assets)
+
+        # noinspection PyTypeChecker
+        assert_that(inserted_assets, has_items(
+            has_properties(
+                uuid=instance_of(UUID),
+                name=equal_to(assets[0].name),
+                ticker=equal_to(assets[0].ticker),
+                logo_s3_key=equal_to(assets[0].logo_s3_key)
+            ),
+            has_properties(
+                uuid=instance_of(UUID),
+                name=equal_to(assets[1].name),
+                ticker=equal_to(assets[1].ticker),
+                logo_s3_key=equal_to(assets[1].logo_s3_key)
+            )
+        ))

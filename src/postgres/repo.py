@@ -1,4 +1,6 @@
-from typing import TypeVar, Any
+from typing import TypeVar, Any, Type, Sequence
+
+from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .session_context import SessionContext
@@ -9,7 +11,7 @@ KEY = Any | tuple[Any, ...]
 
 
 class Repo:
-    __GET_T = TypeVar('__GET_T')
+    __T = TypeVar('__T', bound=Base)
 
     def __init__(self, ctx: SessionContext):
         self.__ctx = ctx
@@ -19,6 +21,28 @@ class Repo:
         self.delete = self.__ctx.wrap(self.delete)
         self.delete_all = self.__ctx.wrap(self.delete_all)
         self.get = self.__ctx.wrap(self.get)
+        self.merge = self.__ctx.wrap(self.merge)
+
+    async def _insert(self, entity: Type[__T], value: __T) -> __T:
+        """Inserts entity to the session.
+        Do not use directly
+        """
+        query = insert(entity).values(value.to_dict()).returning(entity)
+        hit_raw = await self.session.execute(query)
+
+        return hit_raw.scalar()
+
+    async def _insert_many(self, entity: Type[__T], values: list[__T]) -> list[__T]:
+        """Inserts multiple entities to the session.
+        Do not use directly
+        """
+        if not values:
+            return []
+
+        query = insert(entity).values([value.to_dict() for value in values]).returning(entity)
+        hits_raw = await self.session.execute(query)
+
+        return list(hits_raw.scalars().all())
 
     async def add(self, entity: Base) -> None:
         """Adds entity to the session."""
@@ -36,9 +60,13 @@ class Repo:
         """Deletes entities from the session."""
         await self.session.delete(entities)
 
-    async def get(self, entity: __GET_T, key: KEY, **kwargs) -> __GET_T | None:
+    async def get(self, entity: Type[__T], key: KEY, **kwargs) -> __T | None:
         """Gets entity from the session."""
         return await self.session.get(entity, ident=key, **kwargs)
+
+    async def merge(self, entity: Base) -> Base:
+        """Merges entity with the session."""
+        return await self.session.merge(entity)
 
     async def flush(self, session: AsyncSession = None) -> None:
         """Flushes the session."""

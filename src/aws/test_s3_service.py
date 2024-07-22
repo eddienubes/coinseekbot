@@ -18,9 +18,8 @@ class TestS3Service:
     async def test_stream_file_upload(self, service):
         file_url = 'https://bin.bnbstatic.com/image/admin_mgs_image_upload/20230505/298aecf1-31ac-4439-81d1-21d89d746e9a'
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(file_url) as res:
-                assert res.status == 200
-                file_stream = res.content
-                file_path = await service.upload_file_stream('test_file.png', file_stream)
-                assert file_path == 'test_file.png'
+        async with aiohttp.ClientSession() as session, session.get(file_url) as res:
+            assert res.status == 200
+            file_stream = res.content
+            file_path = await service.upload_file_stream('test_file.png', file_stream)
+            assert file_path == 'test_file.png'

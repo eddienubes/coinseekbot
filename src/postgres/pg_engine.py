@@ -10,7 +10,7 @@ class PgEngine:
         self.__engine = create_async_engine(
             f'postgresql+asyncpg://{config.postgres_user}:{config.postgres_pass}@{config.postgres_host}:{config.postgres_port}/{config.postgres_db}'
         )
-        logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+        logging.getLogger('sqlalchemy.engine').setLevel(logging.root.level)
 
         self.__factory = async_sessionmaker(bind=self.__engine, expire_on_commit=False)
 
