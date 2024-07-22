@@ -11,6 +11,7 @@ async def main():
     container = Container()
     await container.init()
     tg_bot = container.get(TelegramBot)
+
     await tg_bot.start()
 
 

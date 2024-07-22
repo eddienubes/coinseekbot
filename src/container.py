@@ -3,6 +3,7 @@ from typing import TypeVar, Type
 
 from bot.bot_inline_query_router import BotInlineQueryRouter
 from bot.bot_personal_commands_router import BotPersonalCommandsRouter
+from cron import CronService
 from exchanges.binance import (BinanceAssetsQueryApi,
                                BinanceAssetsQueryService,
                                BinanceCronService,
@@ -45,13 +46,15 @@ class Container(metaclass=Singleton):
         bot_inline_query_handler = BotInlineQueryRouter(binance_assets_service)
 
         postgres_service = PostgresService()
+        cron_service = CronService()
 
         binance_crypto_asset_repo = BinanceCryptoAssetRepo()
         binance_s3_service = BinanceS3Service()
         binance_cron_service = BinanceCronService(
             assets_query_api,
             binance_crypto_asset_repo,
-            binance_s3_service
+            binance_s3_service,
+            cron_service
         )
 
         instances = [
@@ -64,7 +67,8 @@ class Container(metaclass=Singleton):
             postgres_service,
             binance_crypto_asset_repo,
             binance_cron_service,
-            binance_s3_service
+            binance_s3_service,
+            cron_service
         ]
 
         for instance in instances:

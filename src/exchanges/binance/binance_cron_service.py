@@ -2,21 +2,28 @@ import asyncio
 import logging
 
 from aiogram.client.session import aiohttp
+from apscheduler.triggers.interval import IntervalTrigger
 
+from cron import CronService
 from postgres import pg_session
 from .binance_assets_query_api import BinanceAssetsQueryApi
 from .binance_crypto_asset_repo import BinanceCryptoAssetRepo
 from .binance_s3_service import BinanceS3Service
 from .entities.binance_crypto_asset import BinanceCryptoAsset
+from apscheduler import AsyncScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 
 class BinanceCronService:
     def __init__(self, binance_assets_query_api: BinanceAssetsQueryApi,
                  binance_crypto_assets_repo: BinanceCryptoAssetRepo,
-                 binance_s3_service: BinanceS3Service):
+                 binance_s3_service: BinanceS3Service,
+                 cron_service: CronService
+                 ):
         self.__binance_assets_query_api = binance_assets_query_api
         self.__binance_crypto_assets_repo = binance_crypto_assets_repo
         self.__binance_s3_service = binance_s3_service
+        self.__cron_service = cron_service
         self.__logger = logging.getLogger(BinanceCronService.__name__)
 
     @pg_session
@@ -67,3 +74,7 @@ class BinanceCronService:
         entities = [asset for asset in non_existing_hm.values() if asset.logo_s3_key]
 
         await self.__binance_crypto_assets_repo.insert_many(entities)
+
+    async def on_module_init(self):
+        # Update assets every 12 hours
+        self.__cron_service.add_job(self.ingest_assets, IntervalTrigger(hours=12))
