@@ -18,6 +18,9 @@ class PgEngine:
         """Creates a new session."""
         return self.__factory()
 
+    def get_engine(self):
+        return self.__engine
+
     async def dispose(self) -> None:
         """Disposes the engine."""
         await self.__engine.dispose()

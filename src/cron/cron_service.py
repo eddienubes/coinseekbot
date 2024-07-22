@@ -22,7 +22,12 @@ class CronService:
     async def on_module_init(self):
         self.__scheduler = await AsyncScheduler().__aenter__()
         for job in self.__jobs:
-            await self.__scheduler.add_schedule(job.fn, trigger=job.trigger, conflict_policy=ConflictPolicy.do_nothing)
+            await self.__scheduler.add_schedule(
+                job.fn,
+                trigger=job.trigger,
+                conflict_policy=ConflictPolicy.do_nothing,
+                max_running_jobs=1
+            )
 
         await self.__scheduler.start_in_background()
 
