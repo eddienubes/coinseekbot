@@ -1,8 +1,9 @@
 import asyncio
-import itertools
 import logging
+import itertools
 
 from aiogram.client.session import aiohttp
+from apscheduler.triggers.calendarinterval import CalendarIntervalTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 
 from config import config
@@ -26,15 +27,14 @@ class BinanceCronService:
                  ):
         self.__binance_assets_query_api = binance_assets_query_api
         self.__binance_crypto_assets_repo = binance_crypto_assets_repo
+        self.__binance_crypto_trading_pairs_repo = binance_crypto_trading_pairs_repo
         self.__binance_s3_service = binance_s3_service
         self.__cron_service = cron_service
         self.__logger = logging.getLogger(BinanceCronService.__name__)
 
     @pg_session
     async def ingest_assets(self) -> None:
-        """Create available on binance assets
-        TODO: Perhaps, we should literally truncate the entire table and re-ingest all assets
-        """
+        """Create available on binance assets"""
         assets = await self.__binance_assets_query_api.get_all_assets()
 
         hm = dict()
@@ -100,6 +100,11 @@ class BinanceCronService:
 
             hm[symbol.symbol.upper()] = symbol
 
+        # Basically, truncate the table.
+        # Perhaps, we could mark the records as deleted instead of deleting them.
+        # But for now, let's just delete them.
+        await self.__binance_crypto_trading_pairs_repo.delete_all()
+
         search = await self.__binance_crypto_assets_repo.search_by_tickers(unique_assets)
         search_hits_hm = {asset.ticker: asset for asset in search.hits}
 
@@ -133,9 +138,20 @@ class BinanceCronService:
                 )
             )
 
+        # Inserting in chunks of 1000
+        chunks = itertools.batched(entities, 1000)
+
+        for chunk in chunks:
+            await self.__binance_crypto_trading_pairs_repo.insert_many(chunk)
+
+    @pg_session
+    async def update_binance(self):
+        await self.ingest_assets()
+        await self.ingest_trading_pairs
+
     async def on_module_init(self):
         if config.env == 'test':
             return
 
-        # Update assets every 12 hours
-        self.__cron_service.add_job(self.ingest_assets, IntervalTrigger(hours=12))
+        # Update assets every day at 01:00
+        self.__cron_service.add_job(self.ingest_assets, CalendarIntervalTrigger(hour=1))

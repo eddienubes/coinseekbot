@@ -1,7 +1,7 @@
 import pytest
 
 from container import Container
-from .binance_cron_service import BinanceCronService
+from exchanges.binance import BinanceCronService
 
 
 class TestBinanceCronService:

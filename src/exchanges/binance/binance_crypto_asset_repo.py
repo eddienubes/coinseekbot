@@ -1,4 +1,4 @@
-from typing import Sequence, Iterable
+from typing import Iterable
 
 from sqlalchemy import select
 

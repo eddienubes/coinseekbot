@@ -1,4 +1,4 @@
-from typing import TypeVar, Any, Type, Sequence
+from typing import TypeVar, Any, Type, Sequence, Iterable
 
 from sqlalchemy import delete
 from sqlalchemy.dialects.mysql import insert
@@ -35,7 +35,7 @@ class Repo:
 
         return hit_raw.scalar()
 
-    async def _insert_many(self, entity: Type[__T], values: list[__T]) -> list[__T]:
+    async def _insert_many(self, entity: Type[__T], values: Iterable[__T]) -> list[__T]:
         """Inserts multiple entities to the session.
         Do not use directly
         """
