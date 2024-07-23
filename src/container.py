@@ -7,9 +7,11 @@ from cron import CronService
 from exchanges.binance import (BinanceAssetsQueryApi,
                                BinanceAssetsQueryService,
                                BinanceCronService,
-                               BinanceCryptoAssetRepo)
+                               BinanceCryptoAssetRepo,
+                               BinanceCryptoTradingPairsRepo,
+                               BinanceS3Service
+                               )
 from bot.telegram_bot import TelegramBot
-from exchanges.binance.binance_s3_service import BinanceS3Service
 from postgres.postgres_service import PostgresService
 from redis_client import RedisService
 from utils.singleton import Singleton
@@ -49,12 +51,14 @@ class Container(metaclass=Singleton):
         cron_service = CronService()
 
         binance_crypto_asset_repo = BinanceCryptoAssetRepo()
+        binance_crypto_trading_pairs_repo = BinanceCryptoTradingPairsRepo()
         binance_s3_service = BinanceS3Service()
         binance_cron_service = BinanceCronService(
             assets_query_api,
             binance_crypto_asset_repo,
+            binance_crypto_trading_pairs_repo,
             binance_s3_service,
-            cron_service
+            cron_service,
         )
 
         instances = [
@@ -68,7 +72,8 @@ class Container(metaclass=Singleton):
             binance_crypto_asset_repo,
             binance_cron_service,
             binance_s3_service,
-            cron_service
+            cron_service,
+            binance_crypto_trading_pairs_repo
         ]
 
         for instance in instances:

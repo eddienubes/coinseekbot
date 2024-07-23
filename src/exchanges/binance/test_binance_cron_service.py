@@ -15,3 +15,6 @@ class TestBinanceCronService:
 
     async def test_ingest_assets(self, service: BinanceCronService):
         await service.ingest_assets()
+
+    async def test_ingest_trading_pairs(self, service: BinanceCronService):
+        await service.ingest_trading_pairs()

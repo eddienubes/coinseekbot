@@ -8,7 +8,14 @@ path = os.path.abspath(os.path.join(sys.prefix, '..', '.env'))
 
 class Config(BaseSettings):
     model_config = SettingsConfigDict(env_file=path, extra='allow')
+    #
+    # App
+    #
+    env: str
 
+    #
+    # Bot
+    #
     bot_token: str
 
     #

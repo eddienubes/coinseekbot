@@ -1,5 +1,6 @@
 from typing import TypeVar, Any, Type, Sequence
 
+from sqlalchemy import delete
 from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,6 +24,8 @@ class Repo:
         self.get = self.__ctx.wrap(self.get)
         self.merge = self.__ctx.wrap(self.merge)
 
+        # _ methods don't need to be wrapped, as they are not supposed to be used directly.
+
     async def _insert(self, entity: Type[__T], value: __T) -> __T:
         """Inserts entity to the session.
         Do not use directly
@@ -43,6 +46,11 @@ class Repo:
         hits_raw = await self.session.execute(query)
 
         return list(hits_raw.scalars().all())
+
+    async def _delete_all(self, entity: Type[__T]) -> None:
+        """Deletes all records from a table. Non-UoW operation."""
+        query = delete(entity).where()
+        await self.session.execute(query)
 
     async def add(self, entity: Base) -> None:
         """Adds entity to the session."""

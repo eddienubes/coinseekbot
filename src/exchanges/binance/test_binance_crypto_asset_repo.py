@@ -1,6 +1,5 @@
-import asyncio
 import pytest
-from hamcrest import assert_that, equal_to, has_properties, instance_of, anything, is_, contains, contains_inanyorder, \
+from hamcrest import assert_that, equal_to, has_properties, instance_of, \
     has_items
 from asyncpg.pgproto.pgproto import UUID
 
@@ -47,17 +46,28 @@ class TestBinanceCryptoAssetRepo:
             )
         ))
 
-    async def test_retrieve_non_existent_assets(self, repo: BinanceCryptoAssetRepo):
+    async def test_search_by_ticker(self, repo: BinanceCryptoAssetRepo):
         asset1 = await repo.generate()
         asset2 = await repo.generate()
 
         tickers = [asset1.ticker, asset2.ticker, faker.pystr(10, 10)]
 
-        assets = await repo.get_non_existent_tickers(tickers)
+        result = await repo.search_by_tickers(tickers)
 
-        assert len(assets) == 1
+        # noinspection PyTypeChecker
+        assert_that(result.hits, has_items(
+            has_properties(
+                ticker=equal_to(tickers[0])
+            ),
+            has_properties(
+                ticker=equal_to(tickers[1])
+            )
+        ))
 
-        assert assets[0] == tickers[2]
+        # noinspection PyTypeChecker
+        assert_that(result.misses, has_items(
+            equal_to(tickers[2])
+        ))
 
     async def test_insert_asset(self, repo: BinanceCryptoAssetRepo):
         asset = BinanceCryptoAsset(
