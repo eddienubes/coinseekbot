@@ -2,8 +2,8 @@ import inspect
 
 from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent
 
-from exchanges.binance import BinanceAssetsQueryService
 from bot.telegram_bot import TelegramBot
+from exchanges.binance import BinanceAssetsQueryService
 
 
 @TelegramBot.router()

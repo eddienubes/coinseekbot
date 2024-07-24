@@ -1,4 +1,4 @@
-from sqlalchemy import UUID
+from sqlalchemy import UUID, select
 
 from exchanges.binance.entities import BinanceCryptoTradingPair
 from postgres import PgRepo, pg_session
@@ -46,3 +46,10 @@ class BinanceCryptoTradingPairsRepo(PgRepo):
     @pg_session
     async def delete_all(self) -> None:
         await self._delete_all(entity=BinanceCryptoTradingPair)
+
+    @pg_session
+    async def get_all(self) -> list[BinanceCryptoTradingPair]:
+        hits_raw = await self.session.execute(select(BinanceCryptoTradingPair))
+        hits = hits_raw.scalars().all()
+
+        return list(hits)

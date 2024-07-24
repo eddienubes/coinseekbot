@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 6d5060699152
+Revision ID: d53b82fa810f
 Revises: 0a9d8083df48
-Create Date: 2024-07-23 20:50:27.852620
+Create Date: 2024-07-24 11:41:59.801961
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '6d5060699152'
+revision: str = 'd53b82fa810f'
 down_revision: Union[str, None] = '0a9d8083df48'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -23,9 +23,9 @@ def upgrade() -> None:
     op.create_table('binance_crypto_trading_pairs',
     sa.Column('uuid', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('base_asset_uuid', sa.UUID(), nullable=False),
-    sa.Column('base_asset_name', sa.String(), nullable=False),
+    sa.Column('base_asset_ticker', sa.String(), nullable=False),
     sa.Column('quote_asset_uuid', sa.UUID(), nullable=False),
-    sa.Column('quote_asset_name', sa.String(), nullable=False),
+    sa.Column('quote_asset_ticker', sa.String(), nullable=False),
     sa.Column('symbol', sa.String(), nullable=False),
     sa.Column('status', sa.String(), nullable=False),
     sa.Column('iceberg_allowed', sa.Boolean(), nullable=False),

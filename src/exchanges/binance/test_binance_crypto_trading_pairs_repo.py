@@ -107,3 +107,20 @@ class TestBinanceCryptoTradingPairsRepo:
                 quote_asset_uuid=equal_to(base_asset.uuid),
             )
         ))
+
+    async def test_get_all(self, repo: BinanceCryptoTradingPairsRepo, container: Container):
+        binance_crypto_asset_repo = container.get(BinanceCryptoAssetRepo)
+
+        base_asset = await binance_crypto_asset_repo.generate()
+        quote_asset = await binance_crypto_asset_repo.generate()
+
+        existing_pair = await repo.generate(base_asset.uuid, quote_asset.uuid)
+
+        pair = await repo.get_all()
+
+        # noinspection PyTypeChecker
+        assert_that(pair, has_items(
+            has_properties(
+                uuid=equal_to(existing_pair.uuid)
+            )
+        ))

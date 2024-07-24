@@ -41,5 +41,5 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 log_cli = true
 console_output_style = 'count'
-addopts = '-rP --log-cli-level=DEBUG --capture=no'
+addopts = '-rP --log-cli-level=WARN --capture=no'
 asyncio_mode = 'auto'

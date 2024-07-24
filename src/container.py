@@ -9,7 +9,7 @@ from exchanges.binance import (BinanceAssetsQueryApi,
                                BinanceCronService,
                                BinanceCryptoAssetRepo,
                                BinanceCryptoTradingPairsRepo,
-                               BinanceS3Service
+                               BinanceS3Service, BinanceIngestService, BinanceTradingPairsService
                                )
 from bot.telegram_bot import TelegramBot
 from postgres.postgres_service import PostgresService
@@ -53,12 +53,22 @@ class Container(metaclass=Singleton):
         binance_crypto_asset_repo = BinanceCryptoAssetRepo()
         binance_crypto_trading_pairs_repo = BinanceCryptoTradingPairsRepo()
         binance_s3_service = BinanceS3Service()
-        binance_cron_service = BinanceCronService(
+        binance_ingest_service = BinanceIngestService(
             assets_query_api,
             binance_crypto_asset_repo,
             binance_crypto_trading_pairs_repo,
-            binance_s3_service,
+            binance_s3_service
+        )
+        binance_trading_pairs_service = BinanceTradingPairsService(
+            redis_service=redis_service,
+            trading_pairs_repo=binance_crypto_trading_pairs_repo,
+            assets_query_api=assets_query_api
+        )
+
+        binance_cron_service = BinanceCronService(
+            binance_ingest_service,
             cron_service,
+            trading_pairs_service=binance_trading_pairs_service
         )
 
         instances = [
@@ -73,7 +83,9 @@ class Container(metaclass=Singleton):
             binance_cron_service,
             binance_s3_service,
             cron_service,
-            binance_crypto_trading_pairs_repo
+            binance_crypto_trading_pairs_repo,
+            binance_trading_pairs_service,
+            binance_ingest_service
         ]
 
         for instance in instances:

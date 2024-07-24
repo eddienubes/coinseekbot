@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import mapped_column, Mapped, validates, relationship
 from sqlalchemy import UUID, func, UniqueConstraint, String, Boolean, ForeignKey
@@ -22,10 +22,10 @@ class BinanceCryptoTradingPair(Base):
         foreign_keys=[base_asset_uuid]
     )
 
-    base_asset_name: Mapped[str] = mapped_column(String, nullable=False)
+    base_asset_ticker: Mapped[str] = mapped_column(String, nullable=False)
 
-    @validates('base_asset_name')
-    def validate_base_asset_name(self, key, name: str):
+    @validates('base_asset_ticker')
+    def validate_base_asset_ticker(self, key, name: str):
         if type(name) is str:
             return name.upper()
 
@@ -35,13 +35,14 @@ class BinanceCryptoTradingPair(Base):
         back_populates='quote_pairs',
         foreign_keys=[quote_asset_uuid]
     )
-    quote_asset_name: Mapped[str] = mapped_column(String, nullable=False)
+    quote_asset_ticker: Mapped[str] = mapped_column(String, nullable=False)
 
-    @validates('quote_asset_name')
-    def validate_quote_asset_name(self, key, name: str):
+    @validates('quote_asset_ticker')
+    def validate_quote_asset_ticker(self, key, name: str):
         if type(name) is str:
             return name.upper()
 
+    # Upper case symbol
     symbol: Mapped[str] = mapped_column(String, nullable=False)
 
     @validates('symbol')
@@ -68,9 +69,9 @@ class BinanceCryptoTradingPair(Base):
         """Generates a random entity"""
         return BinanceCryptoTradingPair(
             base_asset_uuid=base_asset_uuid,
-            base_asset_name=faker.pystr(10, 10),
+            base_asset_ticker=faker.pystr(10, 10),
             quote_asset_uuid=quote_asset_uuid,
-            quote_asset_name=faker.pystr(10, 10),
+            quote_asset_ticker=faker.pystr(10, 10),
             symbol=faker.pystr(10, 10),
             status=BinanceTradingPairStatus.TRADING.value,
             iceberg_allowed=False,
