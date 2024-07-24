@@ -30,7 +30,9 @@ class BinanceAssetsQueryApi:
         combine of base and quote asset tickers
         """
 
-        if len(symbols) > 100:
+        # Weird thing, but the endpoint only accepts 100 symbols at a time
+        # However, omitting the symbols parameter will return all symbols
+        if symbols and len(symbols) > 100:
             raise ValueError('Maximum number of symbols is 100')
 
         data = await asyncio.to_thread(self.__spot_client.ticker_24hr, symbols=symbols)

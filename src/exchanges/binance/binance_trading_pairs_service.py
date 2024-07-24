@@ -1,5 +1,4 @@
 import asyncio
-import itertools
 import json
 import logging
 
@@ -24,22 +23,18 @@ class BinanceTradingPairsService:
 
     async def update_trading_pair_price_changes(self):
         """Update trading pair prices in Redis"""
-        pairs = await self.__trading_pairs_repo.get_all()
+        # chunks = itertools.batched(symbols, 500)
+        # 
+        # prices = list[BinanceSymbol24hChangeDto]()
+        # 
+        # for chunk in chunks:
+        #     hits = await self.__assets_query_api.get_24h_price_changes(list(chunk))
+        #     # Throttle the requests a bit to avoid rate limiting
+        #     await asyncio.sleep(0.5)
+        #     prices.extend(hits)
 
-        symbols = [pair.symbol for pair in pairs]
-
-        if not len(symbols):
-            raise ValueError('No trading pairs found in the database')
-
-        chunks = itertools.batched(symbols, 100)
-
-        prices = list[BinanceSymbol24hChangeDto]()
-
-        for chunk in chunks:
-            hits = await self.__assets_query_api.get_24h_price_changes(list(chunk))
-            # Throttle the requests a bit to avoid rate limiting
-            await asyncio.sleep(0.5)
-            prices.extend(hits)
+        # Chunking by 100 actually consumers more weight than just sending all symbols at once
+        prices = await self.__assets_query_api.get_24h_price_changes()
 
         price_hm = {self.__get_price_key(price.symbol.upper()): price.to_json() for price in prices}
 
