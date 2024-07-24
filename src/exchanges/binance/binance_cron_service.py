@@ -26,4 +26,4 @@ class BinanceCronService:
         # Update assets every day at 01:00
         self.__cron_service.add_job(self.__ingest_service.ingest_assets, CalendarIntervalTrigger(hour=1))
         self.__cron_service.add_job(self.__trading_pairs_service.update_trading_pair_price_changes,
-                                    CalendarIntervalTrigger(minute=20))
+                                    CalendarIntervalTrigger(minute=30))

@@ -37,6 +37,8 @@ class BinanceTradingPairsService:
 
         for chunk in chunks:
             hits = await self.__assets_query_api.get_24h_price_changes(list(chunk))
+            # Throttle the requests a bit to avoid rate limiting
+            await asyncio.sleep(0.5)
             prices.extend(hits)
 
         price_hm = {self.__get_price_key(price.symbol.upper()): price.to_json() for price in prices}
