@@ -1,18 +1,10 @@
-from __future__ import annotations
+from tokenize import String
+from uuid import UUID
 
-from typing import TYPE_CHECKING
-
-from sqlalchemy import String, UUID, func, Integer
-from sqlalchemy.orm import mapped_column, Mapped, validates, relationship
-
-from postgres.base import Base
-from utils import faker
-
-if TYPE_CHECKING:
-    from .binance_crypto_trading_pair import BinanceCryptoTradingPair
+from sqlalchemy.orm import Mapped, mapped_column, validates
 
 
-class BinanceCryptoAsset(Base):
+class BinanceCryptoAssetV2:
     __tablename__ = 'binance_crypto_assets'
 
     uuid: Mapped[UUID] = mapped_column(UUID, primary_key=True, server_default=func.gen_random_uuid())

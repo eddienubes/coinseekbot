@@ -9,6 +9,7 @@ class BinanceAsset(DataClassJsonMixin):
     assetName: str | None
     unit: str | None
     commissionRate: float
+    seqNum: int
     isLegalMoney: bool
     logoUrl: str
     fullLogoUrl: str | None

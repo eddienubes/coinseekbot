@@ -13,6 +13,6 @@ class TestBinanceIngestService:
         yield service
         await container.destroy()
 
-    @pytest.mark.skip
+    # @pytest.mark.skip
     async def test_ingest_assets(self, service: BinanceIngestService):
         await service.ingest_assets()

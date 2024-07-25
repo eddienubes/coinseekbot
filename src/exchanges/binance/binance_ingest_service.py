@@ -28,7 +28,10 @@ class BinanceIngestService:
 
     @pg_session
     async def ingest_assets(self) -> None:
-        """Create available on binance assets and their pairs"""
+        """
+        Create available on binance assets and their pairs
+        @deprecated
+        """
         # Truncate both tables. Perhaps, we could preserve the data in the future
         await self.__binance_crypto_trading_pairs_repo.delete_all()
         await self.__binance_crypto_assets_repo.delete_all()
@@ -78,7 +81,8 @@ class BinanceIngestService:
             assets_hm[asset.assetCode] = asset
             assets_entities_hm[asset.assetCode] = BinanceCryptoAsset(
                 name=asset.assetName,
-                ticker=asset.assetCode
+                ticker=asset.assetCode,
+                seq_num=asset.seqNum
             )
 
         async with aiohttp.ClientSession() as session:

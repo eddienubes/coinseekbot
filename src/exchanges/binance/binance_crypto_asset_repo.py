@@ -4,18 +4,13 @@ from sqlalchemy import select
 
 from .entities.binance_crypto_asset import BinanceCryptoAsset
 from postgres import PgRepo, pg_session
-from utils import faker
 from .types.ticker_existence_filter import TickerExistenceFilter
 
 
 class BinanceCryptoAssetRepo(PgRepo):
     @pg_session
     async def generate(self) -> BinanceCryptoAsset:
-        asset = BinanceCryptoAsset(
-            name=faker.pystr(3, 10),
-            ticker=faker.pystr(3, 10),
-            logo_s3_key=faker.image_url()
-        )
+        asset = BinanceCryptoAsset.random()
         await self.add(asset)
 
         return asset

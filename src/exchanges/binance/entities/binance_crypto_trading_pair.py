@@ -22,7 +22,9 @@ class BinanceCryptoTradingPair(Base):
         foreign_keys=[base_asset_uuid]
     )
 
-    base_asset_ticker: Mapped[str] = mapped_column(String, nullable=False)
+    # No foreign key or relation, but should be equal to the related asset's ticker
+    # Used for the ease of access
+    base_asset_ticker: Mapped[str] = mapped_column(String, nullable=False, index=True)
 
     @validates('base_asset_ticker')
     def validate_base_asset_ticker(self, key, name: str):
@@ -35,7 +37,10 @@ class BinanceCryptoTradingPair(Base):
         back_populates='quote_pairs',
         foreign_keys=[quote_asset_uuid]
     )
-    quote_asset_ticker: Mapped[str] = mapped_column(String, nullable=False)
+
+    # No foreign key or relation, but should be equal to the related asset's ticker
+    # Used for the ease of access
+    quote_asset_ticker: Mapped[str] = mapped_column(String, nullable=False, index=True)
 
     @validates('quote_asset_ticker')
     def validate_quote_asset_ticker(self, key, name: str):
