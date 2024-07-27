@@ -4,6 +4,7 @@ from typing import TypeVar, Type
 from bot.bot_inline_query_router import BotInlineQueryRouter
 from bot.bot_personal_commands_router import BotPersonalCommandsRouter
 from cron import CronService
+from crypto.crypto_asset_repo import CryptoAssetRepo
 from exchanges.binance import (BinanceAssetsQueryApi,
                                BinanceAssetsQueryService,
                                BinanceCronService,
@@ -12,6 +13,7 @@ from exchanges.binance import (BinanceAssetsQueryApi,
                                BinanceS3Service, BinanceIngestService, BinanceTradingPairsService
                                )
 from bot.telegram_bot import TelegramBot
+from postgres.alembic.entities import register_entities
 from postgres.postgres_service import PostgresService
 from redis_client import RedisService
 from utils.singleton import Singleton
@@ -36,6 +38,8 @@ class Container(metaclass=Singleton):
         return instance
 
     async def init(self):
+        register_entities()
+
         tg_bot = TelegramBot()
 
         bot_personal_commands_handler = BotPersonalCommandsRouter()
@@ -71,7 +75,10 @@ class Container(metaclass=Singleton):
             trading_pairs_service=binance_trading_pairs_service
         )
 
+        crypto_asset_repo = CryptoAssetRepo()
+
         instances = [
+            crypto_asset_repo,
             tg_bot,
             assets_query_api,
             bot_inline_query_handler,
@@ -85,7 +92,7 @@ class Container(metaclass=Singleton):
             cron_service,
             binance_crypto_trading_pairs_repo,
             binance_trading_pairs_service,
-            binance_ingest_service
+            binance_ingest_service,
         ]
 
         for instance in instances:
