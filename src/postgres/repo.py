@@ -52,13 +52,15 @@ class Repo:
         query = delete(entity).where()
         await self.session.execute(query)
 
-    async def add(self, entity: Base) -> None:
+    async def add(self, entity: __T) -> __T:
         """Adds entity to the session."""
         self.session.add(entity)
+        return entity
 
-    async def add_all(self, entities: list[Base]) -> None:
+    async def add_all(self, entities: list[__T]) -> list[__T]:
         """Adds entities to the session."""
         self.session.add_all(entities)
+        return entities
 
     async def delete(self, entity: Base) -> None:
         """Deletes entity from the session."""

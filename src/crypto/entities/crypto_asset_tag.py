@@ -5,7 +5,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from postgres import Base
 import sqlalchemy as sa
 
-from .crypto_asset_to_asset_tag import crypto_to_asset_tag
+from utils import faker
+from .crypto_asset_to_asset_tag import CryptoAssetToAssetTag
 
 if TYPE_CHECKING:
     from .crypto_asset import CryptoAsset
@@ -18,6 +19,13 @@ class CryptoAssetTag(Base):
     name: Mapped[str] = mapped_column(sa.String, unique=True, nullable=False)
 
     assets: Mapped[list['CryptoAsset']] = relationship(
-        secondary=crypto_to_asset_tag,
-        back_populates='tags'
+        secondary=CryptoAssetToAssetTag.__table__,
+        back_populates='tags',
+        lazy='noload'
     )
+
+    @staticmethod
+    def random() -> 'CryptoAssetTag':
+        return CryptoAssetTag(
+            name=faker.pystr(10)
+        )

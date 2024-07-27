@@ -9,7 +9,8 @@ class PgEngine:
     def __init__(self):
         self.__engine = create_async_engine(
             f'postgresql+asyncpg://{config.postgres_user}:{config.postgres_pass}@{config.postgres_host}:{config.postgres_port}/{config.postgres_db}',
-            echo=False
+            echo=True,
+            use_insertmanyvalues=True
         )
         # logging.getLogger('sqlalchemy.engine').setLevel(logging.root.level)
 

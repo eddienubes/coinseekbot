@@ -1,8 +1,7 @@
 from datetime import datetime
 
 import sqlalchemy as sa
-from sqlalchemy.orm import Mapped
-from sqlalchemy.testing.schema import mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
 from postgres import Base
 from utils import faker
@@ -10,6 +9,8 @@ from utils import faker
 
 class CryptoAssetQuote(Base):
     __tablename__ = 'crypto_asset_quotes'
+
+    id: Mapped[int] = mapped_column(sa.Integer, sa.Identity(), primary_key=True)
 
     asset_uuid: Mapped[sa.UUID] = mapped_column(sa.ForeignKey('crypto_assets.uuid'), index=True, nullable=False)
 
@@ -32,8 +33,9 @@ class CryptoAssetQuote(Base):
     price: Mapped[float] = mapped_column(sa.DECIMAL, nullable=False)
 
     @staticmethod
-    def random():
+    def random(asset_uuid: sa.UUID) -> 'CryptoAssetQuote':
         return CryptoAssetQuote(
+            asset_uuid=asset_uuid,
             fully_diluted_market_cap=faker.pyfloat(positive=True),
             cmc_last_updated=datetime.now(),
             market_cap_dominance=faker.pyfloat(positive=True),

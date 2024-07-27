@@ -1,4 +1,4 @@
-from typing import Mapping
+from typing import Mapping, cast
 
 from sqlalchemy.dialects.postgresql import Insert
 from sqlalchemy.orm import MappedColumn, InstrumentedAttribute
@@ -13,4 +13,13 @@ class PgRepo(Repo):
 
     def on_conflict_do_update_mapping(self, insert: Insert,
                                       conflict: MappedColumn) -> Mapping:
-        return {k: getattr(insert.excluded, k) for k in insert.excluded.keys() if k != conflict.name}
+
+        hm = dict()
+
+        for key in insert.excluded.keys():
+            col: MappedColumn = insert.excluded[key]
+
+            if col.name != conflict.name:
+                hm[key] = getattr(insert.excluded, key)
+
+        return hm

@@ -1,7 +1,9 @@
 from datetime import datetime
+from typing import Sequence
 
 from sqlalchemy import TIMESTAMP, func
-from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
+from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped, InstrumentedAttribute
+from sqlalchemy.orm.collections import InstrumentedList
 
 
 class Base(DeclarativeBase):
@@ -13,10 +15,18 @@ class Base(DeclarativeBase):
         """Convert SQLAlchemy model to dict
         :param kwargs: Additional fields to add or override
         """
-        obj = {k: v for k, v in vars(self).items() if not k.startswith('_')}
+        hm = dict()
+
+        for k, v in vars(self).items():
+            if (not k.startswith('_')  # Filter out private fields
+                    and not callable(v)  # Filter out methods
+                    and not isinstance(v, Base)
+                    and not isinstance(v, InstrumentedList)  # Filter out joined relationships
+            ):
+                hm[k] = v
 
         return {
-            **obj,
+            **hm,
             **kwargs
         }
 

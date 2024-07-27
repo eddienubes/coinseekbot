@@ -1,12 +1,12 @@
-from typing import cast
-
-from sqlalchemy.orm import MappedColumn, InstrumentedAttribute
-
 from crypto.entities.crypto_asset import CryptoAsset
-from postgres import PgRepo, pg_session
+from crypto.entities.crypto_asset_quote import CryptoAssetQuote
+from crypto.entities.crypto_asset_tag import CryptoAssetTag
+from crypto.entities.crypto_asset_to_asset_tag import CryptoAssetToAssetTag
+from postgres import PgRepo, pg_session, Base
 
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import MappedColumn, InstrumentedAttribute
 
 
 class CryptoAssetRepo(PgRepo):
@@ -14,6 +14,11 @@ class CryptoAssetRepo(PgRepo):
     @pg_session
     async def generate(self) -> CryptoAsset:
         asset = CryptoAsset.random()
+        tag1 = CryptoAssetTag.random()
+        tag2 = CryptoAssetTag.random()
+
+        asset.tags.extend([tag1, tag2])
+
         await self.add(asset)
         return asset
 
@@ -29,18 +34,70 @@ class CryptoAssetRepo(PgRepo):
         return await self._insert_many(entity=CryptoAsset, values=assets)
 
     @pg_session
-    async def bulk_upsert(self, assets: list[CryptoAsset],
+    async def bulk_upsert(self, values: list[CryptoAsset],
                           conflict: MappedColumn | InstrumentedAttribute = CryptoAsset.uuid
                           ) -> list[CryptoAsset]:
-        stmt = insert(CryptoAsset).values(
-            [asset.to_dict() for asset in assets]
-        )
 
-        stmt = stmt.on_conflict_do_update(
+        if not len(values):
+            return []
+
+        assets = list[dict]()
+        assets_hm = dict[str, list[str]]()
+        tags = list[dict]()
+        tags_hm = dict[str, CryptoAssetTag]()
+
+        for asset in values:
+            assets_hm[asset.ticker] = assets_hm.get(asset.ticker, [])
+
+            for tag in asset.tags:
+                tags_hm[tag.name] = tag
+                tags.append(tag.to_dict())
+
+                assets_hm[asset.ticker].append(tag.name)
+
+            assets.append(asset.to_dict())
+
+        if len(tags):
+            tags_stmt = insert(CryptoAssetTag).values(tags)
+            tags_stmt = tags_stmt.on_conflict_do_nothing(index_elements=[CryptoAssetTag.name]).returning(CryptoAssetTag)
+
+            tags = list((await self.session.scalars(tags_stmt)).all())
+
+        # update tag hash map
+        for tag in tags:
+            tags_hm[tag.name] = tag
+
+        assets_stmt = insert(CryptoAsset).values(assets)
+        assets_stmt = assets_stmt.on_conflict_do_update(
             index_elements=[conflict],
-            set_=self.on_conflict_do_update_mapping(stmt, conflict)
+            set_=self.on_conflict_do_update_mapping(assets_stmt, conflict)
         ).returning(CryptoAsset)
 
-        hits_raw = await self.session.execute(stmt)
+        assets = list((await self.session.scalars(assets_stmt)).all())
 
-        return cast(list[CryptoAsset], list(hits_raw.scalars().all()))
+        associations = list[dict]()
+
+        for asset in assets:
+            for tag_name in assets_hm.get(asset.ticker, []):
+                tag_entity = tags_hm[tag_name]
+
+                asset.tags.append(tag_entity)
+                associations.append(
+                    CryptoAssetToAssetTag(
+                        asset_uuid=asset.uuid,
+                        tag_uuid=tag_entity.uuid
+                    ).to_dict()
+                )
+
+        if len(associations):
+            associations_stmt = insert(CryptoAssetToAssetTag).values(associations)
+            associations_stmt = associations_stmt.on_conflict_do_nothing(
+                index_elements=[CryptoAssetToAssetTag.asset_uuid, CryptoAssetToAssetTag.tag_uuid]
+            )
+            await self.session.execute(associations_stmt)
+
+        return assets
+
+    @pg_session
+    async def bulk_insert_quotes(self, quotes: list[CryptoAssetQuote]) -> list[CryptoAssetQuote]:
+        return await self._insert_many(entity=CryptoAssetQuote, values=quotes)

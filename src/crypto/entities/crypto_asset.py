@@ -6,7 +6,7 @@ import sqlalchemy as sa
 
 from postgres import Base
 from utils import faker
-from .crypto_asset_to_asset_tag import crypto_to_asset_tag
+from .crypto_asset_to_asset_tag import CryptoAssetToAssetTag
 
 if TYPE_CHECKING:
     from .crypto_asset_tag import CryptoAssetTag
@@ -29,12 +29,13 @@ class CryptoAsset(Base):
     cmc_id: Mapped[int] = mapped_column(sa.Integer, unique=True, nullable=False)
 
     tags: Mapped[list['CryptoAssetTag']] = relationship(
-        secondary=crypto_to_asset_tag,
-        back_populates='assets'
+        secondary=CryptoAssetToAssetTag.__table__,
+        back_populates='assets',
+        lazy='noload'
     )
 
     @staticmethod
-    def random():
+    def random(**kwargs) -> 'CryptoAsset':
         return CryptoAsset(
             ticker=faker.pystr(10, 10),
             name=faker.pystr(10, 10),
@@ -44,4 +45,5 @@ class CryptoAsset(Base):
             infinite_supply=False,
             max_supply=faker.pyint(1, 100),
             cmc_id=faker.pyint(1, 100000000),
+            **kwargs
         )
