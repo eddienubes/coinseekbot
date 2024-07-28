@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 173dfea582c7
+Revision ID: a794a558cdb7
 Revises: b49792bf231d
-Create Date: 2024-07-27 18:35:33.903477
+Create Date: 2024-07-28 17:07:49.765768
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '173dfea582c7'
+revision: str = 'a794a558cdb7'
 down_revision: Union[str, None] = 'b49792bf231d'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -36,30 +36,32 @@ def upgrade() -> None:
     sa.Column('cmc_date_added', sa.TIMESTAMP(), nullable=False),
     sa.Column('num_market_pairs', sa.Integer(), nullable=False),
     sa.Column('infinite_supply', sa.Boolean(), nullable=False),
-    sa.Column('max_supply', sa.Integer(), nullable=True),
+    sa.Column('max_supply', sa.String(), nullable=True),
     sa.Column('cmc_id', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('uuid'),
-    sa.UniqueConstraint('cmc_id'),
-    sa.UniqueConstraint('ticker')
+    sa.UniqueConstraint('cmc_id')
     )
+    op.create_index(op.f('ix_crypto_assets_name'), 'crypto_assets', ['name'], unique=False)
+    op.create_index(op.f('ix_crypto_assets_slug'), 'crypto_assets', ['slug'], unique=False)
+    op.create_index(op.f('ix_crypto_assets_ticker'), 'crypto_assets', ['ticker'], unique=False)
     op.create_table('crypto_asset_quotes',
     sa.Column('id', sa.Integer(), sa.Identity(always=False), nullable=False),
     sa.Column('asset_uuid', sa.UUID(), nullable=False),
-    sa.Column('fully_diluted_market_cap', sa.DECIMAL(), nullable=False),
     sa.Column('cmc_last_updated', sa.TIMESTAMP(), nullable=False),
-    sa.Column('market_cap_dominance', sa.DECIMAL(), nullable=False),
-    sa.Column('percent_change_30d', sa.DECIMAL(), nullable=False),
-    sa.Column('percent_change_1h', sa.DECIMAL(), nullable=False),
-    sa.Column('percent_change_24h', sa.DECIMAL(), nullable=False),
-    sa.Column('percent_change_7d', sa.DECIMAL(), nullable=False),
-    sa.Column('percent_change_60d', sa.DECIMAL(), nullable=False),
-    sa.Column('percent_change_90d', sa.DECIMAL(), nullable=False),
-    sa.Column('market_cap', sa.DECIMAL(), nullable=False),
-    sa.Column('volume_change_24h', sa.DECIMAL(), nullable=False),
-    sa.Column('volume_24h', sa.DECIMAL(), nullable=False),
-    sa.Column('price', sa.DECIMAL(), nullable=False),
+    sa.Column('fully_diluted_market_cap', sa.DECIMAL(scale=4), nullable=False),
+    sa.Column('market_cap_dominance', sa.DECIMAL(scale=4), nullable=False),
+    sa.Column('percent_change_30d', sa.DECIMAL(scale=4), nullable=False),
+    sa.Column('percent_change_1h', sa.DECIMAL(scale=4), nullable=False),
+    sa.Column('percent_change_24h', sa.DECIMAL(scale=4), nullable=False),
+    sa.Column('percent_change_7d', sa.DECIMAL(scale=4), nullable=False),
+    sa.Column('percent_change_60d', sa.DECIMAL(scale=4), nullable=False),
+    sa.Column('percent_change_90d', sa.DECIMAL(scale=4), nullable=False),
+    sa.Column('market_cap', sa.DECIMAL(scale=4), nullable=False),
+    sa.Column('volume_change_24h', sa.DECIMAL(scale=4), nullable=False),
+    sa.Column('volume_24h', sa.DECIMAL(scale=4), nullable=False),
+    sa.Column('price', sa.DECIMAL(scale=4), nullable=False),
     sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['asset_uuid'], ['crypto_assets.uuid'], ),
@@ -73,8 +75,7 @@ def upgrade() -> None:
     sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['asset_uuid'], ['crypto_assets.uuid'], ),
     sa.ForeignKeyConstraint(['tag_uuid'], ['crypto_asset_tags.uuid'], ),
-    sa.PrimaryKeyConstraint('asset_uuid', 'tag_uuid'),
-    sa.UniqueConstraint('asset_uuid', 'tag_uuid')
+    sa.PrimaryKeyConstraint('asset_uuid', 'tag_uuid')
     )
     # ### end Alembic commands ###
 
@@ -84,6 +85,9 @@ def downgrade() -> None:
     op.drop_table('crypto_assets_to_asset_tags')
     op.drop_index(op.f('ix_crypto_asset_quotes_asset_uuid'), table_name='crypto_asset_quotes')
     op.drop_table('crypto_asset_quotes')
+    op.drop_index(op.f('ix_crypto_assets_ticker'), table_name='crypto_assets')
+    op.drop_index(op.f('ix_crypto_assets_slug'), table_name='crypto_assets')
+    op.drop_index(op.f('ix_crypto_assets_name'), table_name='crypto_assets')
     op.drop_table('crypto_assets')
     op.drop_table('crypto_asset_tags')
     # ### end Alembic commands ###

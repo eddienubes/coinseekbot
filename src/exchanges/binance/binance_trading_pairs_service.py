@@ -4,7 +4,7 @@ import logging
 
 from config import config
 from .binance_crypto_trading_pairs_repo import BinanceCryptoTradingPairsRepo
-from .binance_assets_query_api import BinanceAssetsQueryApi
+from .clients.binance_assets_query_api import BinanceAssetsQueryApi
 from .dtos.binance_symbol_24h_change_dto import BinanceSymbol24hChangeDto
 from .types.binance_trading_pair_price_change_search import BinanceTradingPairPriceChangeSearch
 from redis_client import RedisService

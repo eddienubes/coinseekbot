@@ -1,7 +1,7 @@
 import pytest
 
 from container import Container
-from exchanges.binance import BinanceAssetsQueryApi
+from exchanges.binance.clients.binance_assets_query_api import BinanceAssetsQueryApi
 
 
 # @pytest.mark.skip

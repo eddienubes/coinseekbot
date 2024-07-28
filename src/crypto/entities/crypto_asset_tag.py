@@ -21,7 +21,8 @@ class CryptoAssetTag(Base):
     assets: Mapped[list['CryptoAsset']] = relationship(
         secondary=CryptoAssetToAssetTag.__table__,
         back_populates='tags',
-        lazy='noload'
+        lazy='noload',
+        viewonly=True
     )
 
     @staticmethod

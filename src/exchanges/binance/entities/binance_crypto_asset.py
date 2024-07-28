@@ -18,11 +18,6 @@ class BinanceCryptoAsset(Base):
     uuid: Mapped[UUID] = mapped_column(UUID, primary_key=True, server_default=func.gen_random_uuid())
     name: Mapped[str] = mapped_column(String, unique=False, nullable=False)
 
-    @validates('name')
-    def validate_name(self, key, name: str):
-        if type(name) is str:
-            return name.upper()
-
     ticker: Mapped[str] = mapped_column(String, unique=True, nullable=False)
 
     @validates('ticker')

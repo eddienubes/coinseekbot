@@ -4,9 +4,8 @@ import logging
 
 import aiohttp
 
-from .dtos.binance_spot_exchange_info_symbol import BinanceSpotExchangeInfoSymbol
 from postgres import pg_session
-from .binance_assets_query_api import BinanceAssetsQueryApi
+from .clients.binance_assets_query_api import BinanceAssetsQueryApi
 from .binance_crypto_asset_repo import BinanceCryptoAssetRepo
 from .binance_crypto_trading_pairs_repo import BinanceCryptoTradingPairsRepo
 from .binance_s3_service import BinanceS3Service

@@ -2,7 +2,7 @@ import pytest
 from hamcrest import assert_that, has_properties
 
 from container import Container
-from crypto.crypto_asset_repo import CryptoAssetRepo
+from crypto.crypto_assets_repo import CryptoAssetsRepo
 from crypto.entities.crypto_asset import CryptoAsset
 from crypto.entities.crypto_asset_quote import CryptoAssetQuote
 from crypto.entities.crypto_asset_tag import CryptoAssetTag
@@ -11,9 +11,9 @@ from crypto.entities.crypto_asset_tag import CryptoAssetTag
 class TestCryptoAssetRepo:
     @pytest.fixture(autouse=True, scope='class')
     async def repo(self, container: Container) -> None:
-        yield container.get(CryptoAssetRepo)
+        yield container.get(CryptoAssetsRepo)
 
-    async def test_crud(self, repo: CryptoAssetRepo) -> None:
+    async def test_crud(self, repo: CryptoAssetsRepo) -> None:
         asset = await repo.generate()
         assert asset
 
@@ -33,7 +33,7 @@ class TestCryptoAssetRepo:
 
         assert upserted_assets[0].name == new_name
 
-    async def test_crud_with_tags_uow(self, repo: CryptoAssetRepo) -> None:
+    async def test_crud_with_tags_uow(self, repo: CryptoAssetsRepo) -> None:
         asset = await repo.generate()
 
         tags = [CryptoAssetTag.random(), CryptoAssetTag.random()]
@@ -43,7 +43,7 @@ class TestCryptoAssetRepo:
 
         assert len(asset.tags) == 4
 
-    async def test_crud_with_tags(self, repo: CryptoAssetRepo) -> None:
+    async def test_crud_with_tags(self, repo: CryptoAssetsRepo) -> None:
         asset = await repo.generate()
 
         tag1 = CryptoAssetTag.random()
@@ -57,15 +57,17 @@ class TestCryptoAssetRepo:
 
         # await repo.bulk_insert_tags(asset, )
 
-    async def test_bulk_upsert_relational_data(self, repo: CryptoAssetRepo) -> None:
+    async def test_bulk_upsert_relational_data(self, repo: CryptoAssetsRepo) -> None:
         tags = [CryptoAssetTag.random() for _ in range(100)]
 
         assets = [CryptoAsset.random(tags=tags) for _ in range(3)]
         assets = await repo.bulk_upsert(assets, conflict=CryptoAsset.ticker)
 
+        assets = await repo.bulk_upsert(assets, conflict=CryptoAsset.ticker)
+
         assert len(assets) == 3
 
-    async def test_bulk_insert_quotes(self, repo: CryptoAssetRepo) -> None:
+    async def test_bulk_insert_quotes(self, repo: CryptoAssetsRepo) -> None:
         asset = await repo.generate()
 
         quotes = [CryptoAssetQuote.random(asset_uuid=asset.uuid) for _ in range(100)]

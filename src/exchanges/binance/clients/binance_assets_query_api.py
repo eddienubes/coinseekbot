@@ -3,11 +3,11 @@ import asyncio
 import aiohttp
 from binance.spot import Spot
 
-from .dtos.binance_hot_pairs_dto import BinanceHotPairsDto
-from .dtos.binance_all_assets_dto import BinanceAllAssetsDto
-from .dtos.binance_latest_price_dto import BinanceLatestPriceDto
-from .dtos.binance_spot_exchange_info_dto import BinanceSpotExchangeInfoDto
-from .dtos.binance_symbol_24h_change_dto import BinanceSymbol24hChangeDto
+from ..dtos.binance_hot_pairs_dto import BinanceHotPairsDto
+from ..dtos.binance_all_assets_dto import BinanceAllAssetsDto
+from ..dtos.binance_latest_price_dto import BinanceLatestPriceDto
+from ..dtos.binance_spot_exchange_info_dto import BinanceSpotExchangeInfoDto
+from ..dtos.binance_symbol_24h_change_dto import BinanceSymbol24hChangeDto
 
 
 class BinanceAssetsQueryApi:
@@ -15,6 +15,7 @@ class BinanceAssetsQueryApi:
         self.session = aiohttp.ClientSession(base_url='https://www.binance.com')
         self.__spot_client = Spot()
 
+    # TODO: Remove
     async def get_hot_pairs(self) -> BinanceHotPairsDto:
         async with self.session.get('/bapi/composite/v1/public/market/hot-coins?currency=USD') as res:
             data = await res.json()
@@ -44,6 +45,7 @@ class BinanceAssetsQueryApi:
 
         return [BinanceLatestPriceDto.from_dict(d) for d in data]
 
+    # TODO: Remove
     async def get_all_assets(self) -> BinanceAllAssetsDto:
         async with self.session.get('/bapi/asset/v2/public/asset/asset/get-all-asset') as res:
             data = await res.json()

@@ -1,15 +1,17 @@
+from numpy.random.mtrand import Sequence
+
 from crypto.entities.crypto_asset import CryptoAsset
 from crypto.entities.crypto_asset_quote import CryptoAssetQuote
 from crypto.entities.crypto_asset_tag import CryptoAssetTag
 from crypto.entities.crypto_asset_to_asset_tag import CryptoAssetToAssetTag
-from postgres import PgRepo, pg_session, Base
+from postgres import PgRepo, pg_session
 
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import MappedColumn, InstrumentedAttribute
 
 
-class CryptoAssetRepo(PgRepo):
+class CryptoAssetsRepo(PgRepo):
 
     @pg_session
     async def generate(self) -> CryptoAsset:
@@ -34,7 +36,7 @@ class CryptoAssetRepo(PgRepo):
         return await self._insert_many(entity=CryptoAsset, values=assets)
 
     @pg_session
-    async def bulk_upsert(self, values: list[CryptoAsset],
+    async def bulk_upsert(self, values: Sequence[CryptoAsset],
                           conflict: MappedColumn | InstrumentedAttribute = CryptoAsset.uuid
                           ) -> list[CryptoAsset]:
 
@@ -50,27 +52,36 @@ class CryptoAssetRepo(PgRepo):
             assets_hm[asset.ticker] = assets_hm.get(asset.ticker, [])
 
             for tag in asset.tags:
-                tags_hm[tag.name] = tag
-                tags.append(tag.to_dict())
+                if tag.name not in tags_hm:
+                    tags_hm[tag.name] = tag
+                    tags.append(tag.to_dict())
 
                 assets_hm[asset.ticker].append(tag.name)
 
             assets.append(asset.to_dict())
 
         if len(tags):
+            set = self.on_conflict_do_update_mapping(CryptoAssetTag, insert(CryptoAssetTag), CryptoAssetTag.name)
+            print('set: ', set)
             tags_stmt = insert(CryptoAssetTag).values(tags)
-            tags_stmt = tags_stmt.on_conflict_do_nothing(index_elements=[CryptoAssetTag.name]).returning(CryptoAssetTag)
+            tags_stmt = tags_stmt.on_conflict_do_update(
+                index_elements=[CryptoAssetTag.name],
+                set_=set
+            ).returning(CryptoAssetTag)
 
             tags = list((await self.session.scalars(tags_stmt)).all())
+            print(tags)
 
         # update tag hash map
         for tag in tags:
             tags_hm[tag.name] = tag
 
+        assets_set = self.on_conflict_do_update_mapping(CryptoAsset, insert(CryptoAsset), conflict)
+        print('set: ', assets_set)
         assets_stmt = insert(CryptoAsset).values(assets)
         assets_stmt = assets_stmt.on_conflict_do_update(
             index_elements=[conflict],
-            set_=self.on_conflict_do_update_mapping(assets_stmt, conflict)
+            set_=assets_set
         ).returning(CryptoAsset)
 
         assets = list((await self.session.scalars(assets_stmt)).all())

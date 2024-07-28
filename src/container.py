@@ -4,7 +4,8 @@ from typing import TypeVar, Type
 from bot.bot_inline_query_router import BotInlineQueryRouter
 from bot.bot_personal_commands_router import BotPersonalCommandsRouter
 from cron import CronService
-from crypto.crypto_asset_repo import CryptoAssetRepo
+from crypto.crypto_assets_repo import CryptoAssetsRepo
+from crypto.crypto_ingest_service import CryptoIngestService
 from exchanges.binance import (BinanceAssetsQueryApi,
                                BinanceAssetsQueryService,
                                BinanceCronService,
@@ -13,6 +14,7 @@ from exchanges.binance import (BinanceAssetsQueryApi,
                                BinanceS3Service, BinanceIngestService, BinanceTradingPairsService
                                )
 from bot.telegram_bot import TelegramBot
+from exchanges.binance.clients.binance_ui_api import BinanceUiApi
 from postgres.alembic.entities import register_entities
 from postgres.postgres_service import PostgresService
 from redis_client import RedisService
@@ -74,11 +76,19 @@ class Container(metaclass=Singleton):
             cron_service,
             trading_pairs_service=binance_trading_pairs_service
         )
+        binance_ui_api = BinanceUiApi()
 
-        crypto_asset_repo = CryptoAssetRepo()
+        crypto_asset_repo = CryptoAssetsRepo()
+        crypto_ingest_service = CryptoIngestService(
+            crypto_repo=crypto_asset_repo,
+            binance_ui_api=binance_ui_api,
+            cron=cron_service,
+            redis=redis_service
+        )
 
         instances = [
             crypto_asset_repo,
+            crypto_ingest_service,
             tg_bot,
             assets_query_api,
             bot_inline_query_handler,
@@ -93,6 +103,7 @@ class Container(metaclass=Singleton):
             binance_crypto_trading_pairs_repo,
             binance_trading_pairs_service,
             binance_ingest_service,
+            binance_ui_api,
         ]
 
         for instance in instances:

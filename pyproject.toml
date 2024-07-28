@@ -25,6 +25,7 @@ networkx = "^3.3"
 asyncpg = "^0.29.0"
 sqlalchemy = { extras = ["asyncio"], version = "^2.0.31" }
 faker = "^26.0.0"
+python-dateutil = "^2.9.0.post0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -41,5 +42,5 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 log_cli = true
 console_output_style = 'count'
-addopts = '-rP --log-cli-level=WARN --capture=no'
+addopts = '-rP --log-cli-level=DEBUG --capture=no'
 asyncio_mode = 'auto'

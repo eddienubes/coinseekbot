@@ -1,5 +1,6 @@
 from config import config
 from redis.asyncio import Redis
+from redis.asyncio.lock import Lock
 
 
 class RedisService:
@@ -48,6 +49,9 @@ class RedisService:
         for key in keys:
             await self.delete(key)
         return True
+
+    def lock(self, key: str, timeout: int = None) -> Lock:
+        return self.redis.lock(self.__get_key(key), timeout=timeout)
 
     async def on_module_init(self):
         await self.redis.initialize()
