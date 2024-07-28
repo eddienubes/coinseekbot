@@ -6,6 +6,9 @@ from sqlalchemy.orm import Mapped, mapped_column, validates
 from postgres import Base
 from utils import faker
 
+_PRECISION = 25
+_SCALE = 5
+
 
 class CryptoAssetQuote(Base):
     __tablename__ = 'crypto_asset_quotes'
@@ -16,21 +19,21 @@ class CryptoAssetQuote(Base):
 
     cmc_last_updated: Mapped[datetime] = mapped_column(sa.TIMESTAMP, nullable=False)
 
-    market_cap_dominance: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
+    market_cap_dominance: Mapped[float] = mapped_column(sa.NUMERIC(precision=_PRECISION, scale=_SCALE), nullable=False)
 
-    percent_change_30d: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
-    percent_change_1h: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
-    percent_change_24h: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
-    percent_change_7d: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
-    percent_change_60d: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
-    percent_change_90d: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
+    percent_change_30d: Mapped[float] = mapped_column(sa.NUMERIC(precision=_PRECISION, scale=_SCALE), nullable=False)
+    percent_change_1h: Mapped[float] = mapped_column(sa.NUMERIC(precision=_PRECISION, scale=_SCALE), nullable=False)
+    percent_change_24h: Mapped[float] = mapped_column(sa.NUMERIC(precision=_PRECISION, scale=_SCALE), nullable=False)
+    percent_change_7d: Mapped[float] = mapped_column(sa.NUMERIC(precision=_PRECISION, scale=_SCALE), nullable=False)
+    percent_change_60d: Mapped[float] = mapped_column(sa.NUMERIC(precision=_PRECISION, scale=_SCALE), nullable=False)
+    percent_change_90d: Mapped[float] = mapped_column(sa.NUMERIC(precision=_PRECISION, scale=_SCALE), nullable=False)
 
-    market_cap: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
+    market_cap: Mapped[float] = mapped_column(sa.NUMERIC(precision=_PRECISION, scale=_SCALE), nullable=False)
 
-    volume_change_24h: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
-    volume_24h: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
+    volume_change_24h: Mapped[float] = mapped_column(sa.NUMERIC(precision=_PRECISION, scale=_SCALE), nullable=False)
+    volume_24h: Mapped[float] = mapped_column(sa.NUMERIC(precision=_PRECISION, scale=_SCALE), nullable=False)
 
-    price: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
+    price: Mapped[float] = mapped_column(sa.NUMERIC(precision=_PRECISION, scale=_SCALE), nullable=False)
 
     @validates(
         'fully_diluted_market_cap',
@@ -48,7 +51,7 @@ class CryptoAssetQuote(Base):
     )
     def round_precision(self, key: str, value: float) -> float:
         if isinstance(value, float):
-            return round(value, 4)
+            return round(value, _SCALE)
 
         return value
 
