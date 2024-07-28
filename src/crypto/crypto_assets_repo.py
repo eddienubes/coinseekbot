@@ -6,7 +6,7 @@ from crypto.entities.crypto_asset_tag import CryptoAssetTag
 from crypto.entities.crypto_asset_to_asset_tag import CryptoAssetToAssetTag
 from postgres import PgRepo, pg_session
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import MappedColumn, InstrumentedAttribute
 
@@ -112,3 +112,12 @@ class CryptoAssetsRepo(PgRepo):
     @pg_session
     async def bulk_insert_quotes(self, quotes: list[CryptoAssetQuote]) -> list[CryptoAssetQuote]:
         return await self._insert_many(entity=CryptoAssetQuote, values=quotes)
+
+    # async def get_with_latest_quote(self) -> list[CryptoAsset]:
+    #     subquery = select(func.row_number().over(
+    #         partition_by=CryptoAssetQuote.asset_uuid,
+    #         order_by=CryptoAssetQuote.v.desc()
+    #     ).label('row_number')).cte()
+    # 
+    #     query = select(CryptoAsset).outerjoin(CryptoAsset.quotes, isouter=True).order_by()
+    #     return await self.session.execute(query)

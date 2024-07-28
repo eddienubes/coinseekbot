@@ -10,22 +10,34 @@ __logger = logging.getLogger(__name__)
 async def retry(func: Callable,
                 *args,
                 max_retries: int = 3,
-                delay: int = 1,
+                delay: float = 2,
                 jitter=False,
                 max_jitter: int = 3,
-                min_jitter: int = 1, **kwargs):
-    """Exponential backoff retry mechanism"""
+                min_jitter: int = 1,
+                backoff: float = 1.2,
+                **kwargs):
+    """
+    Exponential backoff retry mechanism
+    
+    :param delay: should be > 1, otherwise it will be a constant delay, not exponential
+    """
 
     for i in range(max_retries):
         try:
             return await func(*args, **kwargs)
         except Exception as e:
-            if jitter:
-                additional_delay = random.randint(min_jitter, max_jitter)
-                delay **= 2
-                delay += additional_delay
+            if i != 0:
+                delay **= backoff
 
-            __logger.debug(f'Retrying {func.__name__} attempt {i + 1}/{max_retries} in {delay} seconds, error: {e}')
-            await asyncio.sleep(delay)
+            jitter_delay = random.randint(min_jitter, max_jitter)
+
+            if jitter:
+                sleep = delay + jitter_delay
+            else:
+                sleep = delay
+
+            __logger.debug(f'Retrying {func.__name__} attempt {i + 1}/{max_retries} in {sleep} seconds, error: {e}')
+
+            await asyncio.sleep(sleep)
 
     raise Exception(f'async_utils::retry: Max retries f{max_retries} exceeded for function: {func.__name__}')

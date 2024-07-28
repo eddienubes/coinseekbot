@@ -50,9 +50,6 @@ class Container(metaclass=Singleton):
 
         assets_query_api = BinanceAssetsQueryApi()
 
-        binance_assets_service = BinanceAssetsQueryService(assets_query_api, redis_service)
-        bot_inline_query_handler = BotInlineQueryRouter(binance_assets_service)
-
         postgres_service = PostgresService()
         cron_service = CronService()
 
@@ -78,6 +75,9 @@ class Container(metaclass=Singleton):
         )
         binance_ui_api = BinanceUiApi()
 
+        binance_assets_service = BinanceAssetsQueryService(redis_service=redis_service,
+                                                           binance_ui_api=binance_ui_api)
+
         crypto_asset_repo = CryptoAssetsRepo()
         crypto_ingest_service = CryptoIngestService(
             crypto_repo=crypto_asset_repo,
@@ -85,6 +85,7 @@ class Container(metaclass=Singleton):
             cron=cron_service,
             redis=redis_service
         )
+        bot_inline_query_handler = BotInlineQueryRouter(binance_assets_service)
 
         instances = [
             crypto_asset_repo,

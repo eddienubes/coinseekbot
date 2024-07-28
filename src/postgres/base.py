@@ -1,8 +1,7 @@
 from datetime import datetime
-from typing import Sequence
 
 from sqlalchemy import TIMESTAMP, func
-from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped, InstrumentedAttribute
+from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
 from sqlalchemy.orm.collections import InstrumentedList
 
 

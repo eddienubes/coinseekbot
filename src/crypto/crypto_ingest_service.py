@@ -2,7 +2,7 @@ import asyncio
 import itertools
 import logging
 import random
-from datetime import datetime
+from dateutil import parser as date_parser
 
 from apscheduler.triggers.interval import IntervalTrigger
 
@@ -63,8 +63,7 @@ class CryptoIngestService:
 
                 if quote:
                     quotes_hm[coin.id] = CryptoAssetQuote(
-                        fully_diluted_market_cap=quote.fully_diluted_market_cap,
-                        cmc_last_updated=datetime.now(),
+                        cmc_last_updated=date_parser.parse(quote.last_updated).replace(tzinfo=None),
                         market_cap_dominance=quote.market_cap_dominance,
                         percent_change_30d=quote.percent_change_30d,
                         percent_change_1h=quote.percent_change_1h,
@@ -82,7 +81,7 @@ class CryptoIngestService:
                     ticker=coin.symbol,
                     name=coin.name,
                     slug=coin.slug,
-                    cmc_date_added=datetime.now(),
+                    cmc_date_added=date_parser.parse(coin.date_added).replace(tzinfo=None),
                     num_market_pairs=coin.num_market_pairs,
                     infinite_supply=coin.infinite_supply,
                     max_supply=str(coin.max_supply) if coin.max_supply else None,
@@ -115,7 +114,7 @@ class CryptoIngestService:
             insert_count = 0
 
             # 
-            # Insert quotes
+            # Insert quote
             #
             for chunk in quote_chunks:
                 insert_count += len(chunk)

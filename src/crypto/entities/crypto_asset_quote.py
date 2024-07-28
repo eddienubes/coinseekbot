@@ -16,22 +16,21 @@ class CryptoAssetQuote(Base):
 
     cmc_last_updated: Mapped[datetime] = mapped_column(sa.TIMESTAMP, nullable=False)
 
-    fully_diluted_market_cap: Mapped[float] = mapped_column(sa.DECIMAL(scale=4), nullable=False)
-    market_cap_dominance: Mapped[float] = mapped_column(sa.DECIMAL(scale=4), nullable=False)
+    market_cap_dominance: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
 
-    percent_change_30d: Mapped[float] = mapped_column(sa.DECIMAL(scale=4), nullable=False)
-    percent_change_1h: Mapped[float] = mapped_column(sa.DECIMAL(scale=4), nullable=False)
-    percent_change_24h: Mapped[float] = mapped_column(sa.DECIMAL(scale=4), nullable=False)
-    percent_change_7d: Mapped[float] = mapped_column(sa.DECIMAL(scale=4), nullable=False)
-    percent_change_60d: Mapped[float] = mapped_column(sa.DECIMAL(scale=4), nullable=False)
-    percent_change_90d: Mapped[float] = mapped_column(sa.DECIMAL(scale=4), nullable=False)
+    percent_change_30d: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
+    percent_change_1h: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
+    percent_change_24h: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
+    percent_change_7d: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
+    percent_change_60d: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
+    percent_change_90d: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
 
-    market_cap: Mapped[float] = mapped_column(sa.DECIMAL(scale=4), nullable=False)
+    market_cap: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
 
-    volume_change_24h: Mapped[float] = mapped_column(sa.DECIMAL(scale=4), nullable=False)
-    volume_24h: Mapped[float] = mapped_column(sa.DECIMAL(scale=4), nullable=False)
+    volume_change_24h: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
+    volume_24h: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
 
-    price: Mapped[float] = mapped_column(sa.DECIMAL(scale=4), nullable=False)
+    price: Mapped[float] = mapped_column(sa.NUMERIC(precision=30, scale=4), nullable=False)
 
     @validates(
         'fully_diluted_market_cap',
@@ -57,7 +56,6 @@ class CryptoAssetQuote(Base):
     def random(asset_uuid: sa.UUID) -> 'CryptoAssetQuote':
         return CryptoAssetQuote(
             asset_uuid=asset_uuid,
-            fully_diluted_market_cap=faker.pyfloat(positive=True),
             cmc_last_updated=datetime.now(),
             market_cap_dominance=faker.pyfloat(positive=True),
             percent_change_30d=faker.pyfloat(positive=True),

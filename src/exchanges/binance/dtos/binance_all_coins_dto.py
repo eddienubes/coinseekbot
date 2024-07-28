@@ -31,8 +31,9 @@ class BinanceCoinQuoteEntry(DataClassJsonMixin):
     market_cap: float
     market_cap_dominance: float
     fully_diluted_market_cap: float
-    tvl: float | None
     last_updated: str
+
+    tvl: float = None
 
 
 @dataclasses.dataclass
