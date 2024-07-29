@@ -1,5 +1,5 @@
 from postgres import PgRepo
 
 
-class TgUserRepo(PgRepo):
+class TgUsersRepo(PgRepo):
     pass

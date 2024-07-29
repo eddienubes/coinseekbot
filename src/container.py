@@ -19,6 +19,8 @@ from exchanges.binance.clients.binance_ui_api import BinanceUiApi
 from postgres.alembic.entities import register_entities
 from postgres.postgres_service import PostgresService
 from redis_client import RedisService
+from tg_users.tg_chats_repo import TgChatsRepo
+from tg_users.tg_users_repo import TgUsersRepo
 from utils.singleton import Singleton
 
 
@@ -90,10 +92,16 @@ class Container(metaclass=Singleton):
             assets_service=binance_assets_service,
             crypto_repo=crypto_asset_repo
         )
+        tg_chats_repo = TgChatsRepo()
+        tg_users_repo = TgUsersRepo()
 
-        bot_group_commands_router = BotGroupCommandsRouter()
+        bot_group_commands_router = BotGroupCommandsRouter(
+            chats_repo=tg_chats_repo
+        )
 
         instances = [
+            tg_users_repo,
+            tg_chats_repo,
             bot_group_commands_router,
             crypto_asset_repo,
             crypto_ingest_service,
