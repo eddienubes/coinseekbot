@@ -1,8 +1,8 @@
 import pytest
 
 from container import Container
-from tg_users.tg_user import TgUser
-from tg_users.tg_users_repo import TgUsersRepo
+from telegram.tg_user import TgUser
+from telegram.tg_users_repo import TgUsersRepo
 
 
 class TestTgUsersRepo:

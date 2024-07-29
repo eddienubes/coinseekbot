@@ -18,31 +18,31 @@ class TgChat(Base):
 
     uuid: Mapped[sa.UUID] = mapped_column(sa.UUID, primary_key=True, server_default=sa.func.gen_random_uuid())
 
-    tg_id: Mapped[Decimal] = mapped_column(sa.NUMERIC, unique=True, nullable=False)
+    tg_id: Mapped[int] = mapped_column(sa.BigInteger, unique=True, nullable=False)
 
     type: Mapped[str] = mapped_column(sa.String, index=True, nullable=False)
 
-    title: Mapped[str] = mapped_column(sa.String, nullable=True)
+    title: Mapped[str | None] = mapped_column(sa.String, nullable=True)
     """Full name of a user in case the chat is private"""
 
-    username: Mapped[str] = mapped_column(sa.String, index=True, nullable=True)
+    username: Mapped[str | None] = mapped_column(sa.String, index=True, nullable=True)
 
-    fullname: Mapped[str] = mapped_column(sa.String, nullable=True)
+    fullname: Mapped[str | None] = mapped_column(sa.String, nullable=True)
     """Full name of a user in case the chat is private"""
 
-    is_forum: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, default=False)
+    is_forum: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, server_default=sa.sql.false())
     """if the supergroup chat is a forum"""
 
-    description: Mapped[str] = mapped_column(sa.String)
+    description: Mapped[str | None] = mapped_column(sa.String, nullable=True)
     """Description, for supergroups and channel chats"""
 
-    bio: Mapped[str] = mapped_column(sa.String)
+    bio: Mapped[str | None] = mapped_column(sa.String, nullable=True)
     """Bio of the other party in a private chat"""
 
-    join_by_request: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, default=False)
+    join_by_request: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, server_default=sa.sql.false())
     """True, if the chat is a private chat and the other party can join the chat by request"""
 
-    invite_link: Mapped[str] = mapped_column(sa.String)
+    invite_link: Mapped[str | None] = mapped_column(sa.String, nullable=True)
     """Chat invite link, for supergroups and channel chats"""
 
     users: Mapped[list['TgUser']] = relationship(
@@ -53,9 +53,9 @@ class TgChat(Base):
     )
 
     @staticmethod
-    def random() -> 'TgChat':
-        return TgChat(
-            tg_id=faker.pydecimal(left_digits=5, right_digits=2),
+    def random(**kwargs) -> 'TgChat':
+        base = TgChat(
+            tg_id=faker.pyint(),
             type=faker.pystr(10, 10),
             username=faker.pystr(10, 10),
             fullname=faker.pystr(10, 10),
@@ -64,4 +64,8 @@ class TgChat(Base):
             bio=faker.pystr(10, 10),
             join_by_request=False,
             invite_link=faker.url()
+        )
+
+        return TgChat(
+            **{**base.to_dict(), **kwargs}
         )

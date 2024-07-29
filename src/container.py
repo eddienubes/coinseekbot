@@ -19,8 +19,8 @@ from exchanges.binance.clients.binance_ui_api import BinanceUiApi
 from postgres.alembic.entities import register_entities
 from postgres.postgres_service import PostgresService
 from redis_client import RedisService
-from tg_users.tg_chats_repo import TgChatsRepo
-from tg_users.tg_users_repo import TgUsersRepo
+from telegram.tg_chats_repo import TgChatsRepo
+from telegram.tg_users_repo import TgUsersRepo
 from utils.singleton import Singleton
 
 
