@@ -5,5 +5,5 @@ from .binance_base_dto import BinanceBaseDto
 
 
 @dataclass
-class BinanceAllAssetsDto(BinanceBaseDto[list[BinanceAsset]]):
-    pass
+class BinanceAllAssetsDto(BinanceBaseDto):
+    data: list[BinanceAsset]

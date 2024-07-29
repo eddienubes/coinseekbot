@@ -13,8 +13,8 @@ class BinanceAllCoinsStatus:
     credit_count: int
     notice: str | None
 
-    total_count: int = None
-    error_message: str = None
+    total_count: int | None = None
+    error_message: str | None = None
 
 
 @dataclasses.dataclass
@@ -33,7 +33,7 @@ class BinanceCoinQuoteEntry(DataClassJsonMixin):
     fully_diluted_market_cap: float
     last_updated: str
 
-    tvl: float = None
+    tvl: float | None = None
 
 
 @dataclasses.dataclass
@@ -60,11 +60,11 @@ class BinanceAllCoinsEntry(DataClassJsonMixin):
     last_updated: str
     quote: BinanceCoinQuote | None = None
 
-    max_supply: int = None
-    tvl_ratio: float = None
-    self_reported_market_cap: int = None
-    self_reported_circulating_supply: int = None
-    platform: dict = None
+    max_supply: int | None = None
+    tvl_ratio: float | None = None
+    self_reported_market_cap: int | None = None
+    self_reported_circulating_supply: int | None = None
+    platform: dict | None = None
 
 
 @dataclasses.dataclass

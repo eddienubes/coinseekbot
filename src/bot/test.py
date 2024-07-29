@@ -21,4 +21,3 @@ class SomeClass2:
 instance = SomeClass()
 
 print(inspect.signature(some_method).parameters)
-print(type(instance) == SomeClass)

@@ -29,6 +29,14 @@ class CryptoAsset(Base):
 
     cmc_id: Mapped[int] = mapped_column(sa.Integer, unique=True, nullable=False)
 
+    @property
+    def small_logo_url(self) -> str:
+        return f'https://s2.coinmarketcap.com/static/img/coins/64x64/{self.cmc_id}.png'
+
+    @property
+    def large_logo_url(self) -> str:
+        return f'https://s2.coinmarketcap.com/static/img/coins/128x128/{self.cmc_id}.png'
+
     tags: Mapped[list['CryptoAssetTag']] = relationship(
         secondary=CryptoAssetToAssetTag.__table__,
         back_populates='assets',

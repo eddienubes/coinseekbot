@@ -47,6 +47,7 @@ class BinanceTradingPairsService:
         if not price:
             return None
 
+        # TODO: I think there's a bug here. It doesn't create an actual dataclass instance.
         return json.loads(price)
 
     async def search_trading_pair_price_changes(self, symbols: list[str]) -> BinanceTradingPairPriceChangeSearch:
@@ -75,4 +76,4 @@ class BinanceTradingPairsService:
         if config.env == 'test':
             return
 
-        await self.update_trading_pair_price_changes()
+        # await self.update_trading_pair_price_changes()

@@ -4,5 +4,5 @@ from dataclasses import dataclass
 
 
 @dataclass
-class BinanceHotPairsDto(BinanceBaseDto[list[BinanceHotPair]]):
-    pass
+class BinanceHotPairsDto(BinanceBaseDto):
+    data: list[BinanceHotPair]

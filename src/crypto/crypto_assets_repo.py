@@ -71,7 +71,6 @@ class CryptoAssetsRepo(PgRepo):
             ).returning(CryptoAssetTag)
 
             tags = list((await self.session.scalars(tags_stmt)).all())
-            print(tags)
 
         # update tag hash map
         for tag in tags:
@@ -113,9 +112,17 @@ class CryptoAssetsRepo(PgRepo):
         return await self._insert_many(entity=CryptoAssetQuote, values=quotes)
 
     @pg_session
-    async def get_with_latest_quote(self, tickers: Sequence[str], dedupe: bool = True) -> list[CryptoAsset]:
+    async def get_with_latest_quote(
+            self,
+            tickers: Sequence[str],
+            dedupe: bool = True,
+            fuzzy: bool = False,
+            limit=50
+    ) -> list[CryptoAsset]:
         """
         Get assets with latest quote
+        :param limit:
+        :param fuzzy: Enable fuzzy search. Just ilike for now.
         :param tickers: The list of tickers to look for
         :param dedupe: Deduplicates assets by tickers and leaves only the ones with the most market pairs.
         Otherwise, it will return matching assets sorted by most market pairs.
@@ -152,21 +159,30 @@ class CryptoAssetsRepo(PgRepo):
             .where(
                 sa.and_(
                     quote_subquery.c.id.isnot(None),
+                    # *[
+                    #     CryptoAsset.ticker.in_(tickers)
+                    # ]
+
+                    sa.or_(
+                        *[CryptoAsset.ticker.ilike(f'%{ticker}%') for ticker in tickers],
+                        *[CryptoAsset.name.ilike(f'%{ticker}%') for ticker in tickers]
+                    ) if fuzzy else
                     CryptoAsset.ticker.in_(tickers)
                 )
             )
         ).subquery()
 
-        query = (
-            select(
-                aliased(CryptoAsset, asset_subquery),
-                aliased(CryptoAssetQuote, asset_subquery)
-            )
-            # .where(asset_subquery.c.rn == 1)
+        query = select(
+            aliased(CryptoAsset, asset_subquery),
+            aliased(CryptoAssetQuote, asset_subquery)
         )
 
         if dedupe:
             query = query.where(asset_subquery.c.rn == 1)
+        else:
+            query = query.order_by(asset_subquery.c.market_cap.desc())
+
+        query = query.limit(limit)
 
         raw = (await self.session.execute(query))
 

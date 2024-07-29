@@ -2,11 +2,12 @@ import asyncio
 import logging
 
 from bot import TelegramBot
+from config import config
 from container import Container
 
 
 async def main():
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=config.log_level)
 
     container = Container()
     await container.init()

@@ -12,12 +12,14 @@ class Config(BaseSettings):
     # App
     #
     env: str
+    log_level: str
 
     #
     # Bot
     #
     bot_token: str
     bot_inline_cache_timeout_sec: int
+    bot_inline_hot_cache_timeout_sec: int
 
     #
     # Redis

@@ -85,7 +85,10 @@ class Container(metaclass=Singleton):
             cron=cron_service,
             redis=redis_service
         )
-        bot_inline_query_handler = BotInlineQueryRouter(binance_assets_service)
+        bot_inline_query_handler = BotInlineQueryRouter(
+            assets_service=binance_assets_service,
+            crypto_repo=crypto_asset_repo
+        )
 
         instances = [
             crypto_asset_repo,
@@ -109,7 +112,7 @@ class Container(metaclass=Singleton):
 
         for instance in instances:
             classname: str = type(instance).__name__
-            logging.info(f"Initializing {classname}")
+            logging.info(f"Initializing {classname}.")
             self.container[type(instance)] = instance
 
             on_module_init = getattr(instance, "on_module_init", None)

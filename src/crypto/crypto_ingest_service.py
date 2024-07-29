@@ -2,6 +2,7 @@ import asyncio
 import itertools
 import logging
 import random
+from datetime import datetime
 
 from decimal import *
 
@@ -101,11 +102,13 @@ class CryptoIngestService:
             # Upsert assets
             #
             for chunk in asset_chunks:
-                upsert_count += len(chunk)
-                self.__logger.info(f'ingest_crypto_assets: upserting {upsert_count}/{len(assets)} assets')
-                assets = await self.__crypto_repo.bulk_upsert(chunk, conflict=CryptoAsset.cmc_id)
+                upserted_assets = await self.__crypto_repo.bulk_upsert(chunk, conflict=CryptoAsset.cmc_id)
 
-                for asset in assets:
+                upsert_count += len(upserted_assets)
+
+                self.__logger.info(f'ingest_crypto_assets: upserted {upsert_count}/{len(assets)} assets')
+
+                for asset in upserted_assets:
                     quote = quotes_hm.get(asset.cmc_id)
                     if not quote:
                         continue
@@ -115,13 +118,14 @@ class CryptoIngestService:
             quote_chunks = itertools.batched(quotes_hm.values(), 150)
             insert_count = 0
 
-            # 
+            #
             # Insert quote
             #
             for chunk in quote_chunks:
-                insert_count += len(chunk)
-                self.__logger.info(f'ingest_crypto_assets: inserting {insert_count}/{len(quotes_hm)} quotes')
-                await self.__crypto_repo.bulk_insert_quotes(chunk)
+                upserted_quotes = await self.__crypto_repo.bulk_insert_quotes(chunk)
+
+                insert_count += len(upserted_quotes)
+                self.__logger.info(f'ingest_crypto_assets: inserted {insert_count}/{len(quotes_hm)} quotes')
 
             count += len(res.data)
 
@@ -135,4 +139,9 @@ class CryptoIngestService:
             res = await self.__binance_ui_api.get_all_coins(offset=count + 1, limit=5000)
 
     async def on_module_init(self) -> None:
-        self.__cron.add_job(self.ingest_crypto_assets, IntervalTrigger(minutes=10))
+        now = datetime.now()
+
+        # Start the job in the next hour
+        start_time = now.replace(hour=now.hour + 1)
+
+        self.__cron.add_job(self.ingest_crypto_assets, IntervalTrigger(minutes=15, start_time=start_time))

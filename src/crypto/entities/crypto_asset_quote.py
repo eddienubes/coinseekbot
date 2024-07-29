@@ -8,7 +8,7 @@ from postgres import Base
 from utils import faker
 
 _PRECISION = 30
-_SCALE = 5
+_SCALE = 11
 
 
 class CryptoAssetQuote(Base):
