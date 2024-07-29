@@ -1,5 +1,5 @@
 import pytest
-from hamcrest import assert_that, has_properties
+from hamcrest import assert_that, has_properties, has_items
 
 from container import Container
 from crypto.crypto_assets_repo import CryptoAssetsRepo
@@ -72,3 +72,38 @@ class TestCryptoAssetRepo:
 
         quotes = [CryptoAssetQuote.random(asset_uuid=asset.uuid) for _ in range(100)]
         await repo.bulk_insert_quotes(quotes)
+
+    async def test_get_with_latest_quote(self, repo: CryptoAssetsRepo) -> None:
+        asset1 = await repo.generate()
+        asset2 = await repo.generate()
+        quote1 = CryptoAssetQuote.random(asset_uuid=asset1.uuid)
+        quote2 = CryptoAssetQuote.random(asset_uuid=asset2.uuid)
+
+        quote1 = await repo.add(quote1)
+        quote2 = await repo.add(quote2)
+
+        assets = await repo.get_with_latest_quote([asset1.ticker, asset2.ticker])
+
+        # noinspection PyTypeChecker
+        assert_that(assets, has_items(
+            has_properties(
+                ticker=asset1.ticker,
+                name=asset1.name,
+                latest_quote=has_properties(
+                    id=quote1.id,
+                    price=quote1.price,
+                    # volume_24h=quote1.volume_24h,
+                    # last_updated=quote1.cmc_last_updated
+                )
+            ),
+            has_properties(
+                ticker=asset2.ticker,
+                name=asset2.name,
+                # latest_quote=has_properties(
+                #     id=quote2.id,
+                #     price=quote2.price,
+                #     volume_24h=quote2.volume_24h,
+                #     last_updated=quote2.cmc_last_updated
+                # )
+            )
+        ))

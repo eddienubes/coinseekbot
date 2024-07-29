@@ -1,3 +1,5 @@
+from typing import cast
+
 from numpy.random.mtrand import Sequence
 
 from crypto.entities.crypto_asset import CryptoAsset
@@ -6,9 +8,10 @@ from crypto.entities.crypto_asset_tag import CryptoAssetTag
 from crypto.entities.crypto_asset_to_asset_tag import CryptoAssetToAssetTag
 from postgres import PgRepo, pg_session
 
-from sqlalchemy import select, func
-from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.orm import MappedColumn, InstrumentedAttribute
+from sqlalchemy import select, func, outerjoin
+from sqlalchemy.dialects.postgresql import insert, dialect
+from sqlalchemy.orm import MappedColumn, InstrumentedAttribute, aliased, contains_eager
+import sqlalchemy as sa
 
 
 class CryptoAssetsRepo(PgRepo):
@@ -62,7 +65,6 @@ class CryptoAssetsRepo(PgRepo):
 
         if len(tags):
             set = self.on_conflict_do_update_mapping(CryptoAssetTag, insert(CryptoAssetTag), CryptoAssetTag.name)
-            print('set: ', set)
             tags_stmt = insert(CryptoAssetTag).values(tags)
             tags_stmt = tags_stmt.on_conflict_do_update(
                 index_elements=[CryptoAssetTag.name],
@@ -77,7 +79,7 @@ class CryptoAssetsRepo(PgRepo):
             tags_hm[tag.name] = tag
 
         assets_set = self.on_conflict_do_update_mapping(CryptoAsset, insert(CryptoAsset), conflict)
-        print('set: ', assets_set)
+        
         assets_stmt = insert(CryptoAsset).values(assets)
         assets_stmt = assets_stmt.on_conflict_do_update(
             index_elements=[conflict],
@@ -113,11 +115,59 @@ class CryptoAssetsRepo(PgRepo):
     async def bulk_insert_quotes(self, quotes: list[CryptoAssetQuote]) -> list[CryptoAssetQuote]:
         return await self._insert_many(entity=CryptoAssetQuote, values=quotes)
 
-    # async def get_with_latest_quote(self) -> list[CryptoAsset]:
-    #     subquery = select(func.row_number().over(
-    #         partition_by=CryptoAssetQuote.asset_uuid,
-    #         order_by=CryptoAssetQuote.v.desc()
-    #     ).label('row_number')).cte()
-    # 
-    #     query = select(CryptoAsset).outerjoin(CryptoAsset.quotes, isouter=True).order_by()
-    #     return await self.session.execute(query)
+    @pg_session
+    async def get_with_latest_quote(self, tickers: Sequence[str]) -> list[CryptoAsset]:
+        aliased_quote = aliased(CryptoAssetQuote)
+
+        quote_subquery = aliased(select(
+            func.row_number().over(
+                partition_by=aliased_quote.asset_uuid,
+                order_by=aliased_quote.cmc_last_updated.desc()
+            ).label('rn'),
+            aliased_quote
+        ).subquery())
+
+        # to remove duplicate tickers
+        asset_subquery = (
+            select(
+                func.row_number().over(
+                    partition_by=CryptoAsset.ticker,
+                    order_by=sa.and_(
+                        CryptoAsset.num_market_pairs.desc()
+                    )
+                ).label('rn'),
+                quote_subquery,
+                CryptoAsset
+            )
+            .outerjoin(
+                target=quote_subquery,
+                onclause=sa.and_(quote_subquery.c.rn == 1,
+                                 quote_subquery.c.asset_uuid == CryptoAsset.uuid)
+            )
+            .where(
+                sa.and_(
+                    quote_subquery.c.id.isnot(None),
+                    CryptoAsset.ticker.in_(tickers)
+                )
+            )
+        ).subquery()
+
+        query = (
+            select(
+                aliased(CryptoAsset, asset_subquery),
+                aliased(CryptoAssetQuote, asset_subquery)
+            )
+            .where(asset_subquery.c.rn == 1)
+        )
+
+        raw = (await self.session.execute(query))
+
+        assets = []
+
+        for row in raw.all():
+            asset, quote = cast(tuple[CryptoAsset, CryptoAssetQuote], row)
+
+            asset.latest_quote = quote
+            assets.append(asset)
+
+        return assets

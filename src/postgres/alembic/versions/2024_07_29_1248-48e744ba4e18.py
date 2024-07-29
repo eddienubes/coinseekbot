@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: aadc1983e740
+Revision ID: 48e744ba4e18
 Revises: b49792bf231d
-Create Date: 2024-07-28 18:48:01.993386
+Create Date: 2024-07-29 12:48:05.600305
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'aadc1983e740'
+revision: str = '48e744ba4e18'
 down_revision: Union[str, None] = 'b49792bf231d'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -50,17 +50,17 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), sa.Identity(always=False), nullable=False),
     sa.Column('asset_uuid', sa.UUID(), nullable=False),
     sa.Column('cmc_last_updated', sa.TIMESTAMP(), nullable=False),
-    sa.Column('market_cap_dominance', sa.NUMERIC(precision=25, scale=5), nullable=False),
-    sa.Column('percent_change_30d', sa.NUMERIC(precision=25, scale=5), nullable=False),
-    sa.Column('percent_change_1h', sa.NUMERIC(precision=25, scale=5), nullable=False),
-    sa.Column('percent_change_24h', sa.NUMERIC(precision=25, scale=5), nullable=False),
-    sa.Column('percent_change_7d', sa.NUMERIC(precision=25, scale=5), nullable=False),
-    sa.Column('percent_change_60d', sa.NUMERIC(precision=25, scale=5), nullable=False),
-    sa.Column('percent_change_90d', sa.NUMERIC(precision=25, scale=5), nullable=False),
-    sa.Column('market_cap', sa.NUMERIC(precision=25, scale=5), nullable=False),
-    sa.Column('volume_change_24h', sa.NUMERIC(precision=25, scale=5), nullable=False),
-    sa.Column('volume_24h', sa.NUMERIC(precision=25, scale=5), nullable=False),
-    sa.Column('price', sa.NUMERIC(precision=25, scale=5), nullable=False),
+    sa.Column('market_cap_dominance', sa.NUMERIC(precision=30, scale=5), nullable=False),
+    sa.Column('percent_change_30d', sa.NUMERIC(precision=30, scale=5), nullable=False),
+    sa.Column('percent_change_1h', sa.NUMERIC(precision=30, scale=5), nullable=False),
+    sa.Column('percent_change_24h', sa.NUMERIC(precision=30, scale=5), nullable=False),
+    sa.Column('percent_change_7d', sa.NUMERIC(precision=30, scale=5), nullable=False),
+    sa.Column('percent_change_60d', sa.NUMERIC(precision=30, scale=5), nullable=False),
+    sa.Column('percent_change_90d', sa.NUMERIC(precision=30, scale=5), nullable=False),
+    sa.Column('market_cap', sa.NUMERIC(precision=30, scale=5), nullable=False),
+    sa.Column('volume_change_24h', sa.NUMERIC(precision=30, scale=5), nullable=False),
+    sa.Column('volume_24h', sa.NUMERIC(precision=30, scale=5), nullable=False),
+    sa.Column('price', sa.NUMERIC(precision=30, scale=5), nullable=False),
     sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['asset_uuid'], ['crypto_assets.uuid'], ),

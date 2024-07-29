@@ -2,8 +2,10 @@ import asyncio
 import itertools
 import logging
 import random
-from dateutil import parser as date_parser
 
+from decimal import *
+
+from dateutil import parser as date_parser
 from apscheduler.triggers.interval import IntervalTrigger
 
 from cron import CronService
@@ -28,8 +30,8 @@ class CryptoIngestService:
 
     @pg_session
     async def lock_ingest_crypto_assets(self) -> None:
-        # timeout - 60 seconds
-        lock = self.__redis.lock('crypto_ingest', timeout=120)
+        # timeout - 300 seconds
+        lock = self.__redis.lock('crypto_ingest', timeout=300)
 
         # Skip if lock is already acquired
         acquired = await lock.acquire(blocking=False)
@@ -64,17 +66,17 @@ class CryptoIngestService:
                 if quote:
                     quotes_hm[coin.id] = CryptoAssetQuote(
                         cmc_last_updated=date_parser.parse(quote.last_updated).replace(tzinfo=None),
-                        market_cap_dominance=quote.market_cap_dominance,
-                        percent_change_30d=quote.percent_change_30d,
-                        percent_change_1h=quote.percent_change_1h,
-                        percent_change_24h=quote.percent_change_24h,
-                        percent_change_7d=quote.percent_change_7d,
-                        percent_change_60d=quote.percent_change_60d,
-                        percent_change_90d=quote.percent_change_90d,
-                        market_cap=quote.market_cap,
-                        volume_change_24h=quote.volume_change_24h,
-                        volume_24h=quote.volume_24h,
-                        price=quote.price
+                        market_cap_dominance=Decimal(quote.market_cap_dominance),
+                        percent_change_30d=Decimal(quote.percent_change_30d),
+                        percent_change_1h=Decimal(quote.percent_change_1h),
+                        percent_change_24h=Decimal(quote.percent_change_24h),
+                        percent_change_7d=Decimal(quote.percent_change_7d),
+                        percent_change_60d=Decimal(quote.percent_change_60d),
+                        percent_change_90d=Decimal(quote.percent_change_90d),
+                        market_cap=Decimal(quote.market_cap),
+                        volume_change_24h=Decimal(quote.volume_change_24h),
+                        volume_24h=Decimal(quote.volume_24h),
+                        price=Decimal(quote.price)
                     )
 
                 asset = CryptoAsset(

@@ -11,3 +11,6 @@ class TestCryptoIngestService:
 
     async def test_ingest_crypto_assets(self, service: CryptoIngestService):
         await service.ingest_crypto_assets()
+
+    async def test_lock_ingest_crypto_assets(self, service: CryptoIngestService):
+        await service.lock_ingest_crypto_assets()

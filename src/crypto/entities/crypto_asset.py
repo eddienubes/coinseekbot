@@ -57,7 +57,7 @@ class CryptoAsset(Base):
             cmc_date_added=datetime.now(),
             num_market_pairs=faker.pyint(1, 100),
             infinite_supply=False,
-            max_supply=faker.pyint(1, 100),
+            max_supply=str(faker.pyint(1, 100)),
             cmc_id=faker.pyint(1, 100000000),
             **kwargs
         )
