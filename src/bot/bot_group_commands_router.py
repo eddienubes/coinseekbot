@@ -1,5 +1,6 @@
 import inspect
 
+from aiogram.enums import ParseMode
 from aiogram.types import Message, ChatMemberUpdated
 
 from bot import TelegramBot
@@ -35,13 +36,15 @@ class BotGroupCommandsRouter:
             )
         )
 
-        await message.answer(inspect.cleandoc("""
-            Tracky the bot has joined this chat. 👋
-        """))
         await message.answer_sticker(sticker=SHIT_MEME_STICKER_ID)
+        await message.answer(inspect.cleandoc("""
+            What's up Bitcoin holders, condolences to the rest 👋
+            Try @trackyinvestbot inline bot to start searching for your precious coins.
+
+            Use /tracky to get some <s>mental</s> help.
+        """), parse_mode=ParseMode.HTML)
 
     @TelegramBot.handle_message(Command('watch'))
     async def watch(self, message: Message):
         print(message)
-        await message.answer_animation(animation=SHIT_MEME_STICKER_ID)
         await message.reply('Watch command')
