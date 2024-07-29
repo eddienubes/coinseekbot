@@ -6,8 +6,10 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from inspect import signature
 
+from aiogram.types import Message
+
 from utils import AnyCallable
-from .handler import Handler
+from .handler import Handler, HandlerType
 
 from config import config
 
@@ -16,8 +18,7 @@ class TelegramBot:
     __dp = Dispatcher()
     # For each class, we store a list of handler factories.
     # A factory encloses the handler function with provided Aiogram filters.
-    __message_handlers: dict[str, list[Handler]] = {}
-    __inline_query_handlers: dict[str, list[Handler]] = {}
+    __handlers: dict[str, list[Handler]] = {}
 
     @classmethod
     def router(cls):
@@ -26,18 +27,20 @@ class TelegramBot:
                 existing_on_module_init = getattr(decorated_cls, 'on_module_init', None)
 
                 async def on_module_init(self) -> None:
-                    message_handlers = cls.__message_handlers.get(decorated_cls.__name__, [])
-                    inline_query_handlers = cls.__inline_query_handlers.get(decorated_cls.__name__, [])
+                    handlers = cls.__handlers.get(decorated_cls.__name__, [])
 
-                    for handler in message_handlers:
+                    for handler in handlers:
                         logging.info(
-                            f"Registering message handlers for router: {decorated_cls.__name__}")
-                        cls.__dp.message.register(handler.factory(self), *handler.filters)
+                            f"Registering handler {handler.type} for router: {decorated_cls.__name__}")
 
-                    for handler in inline_query_handlers:
-                        logging.info(
-                            f"Registering inline query handlers for router: {decorated_cls.__name__}")
-                        cls.__dp.inline_query.register(handler.factory(self), *handler.filters)
+                        if handler.type == HandlerType.MESSAGE:
+                            cls.__dp.message.register(handler.factory(self), *handler.filters)
+                        elif handler.type == HandlerType.INLINE_QUERY:
+                            cls.__dp.inline_query.register(handler.factory(self), *handler.filters)
+                        elif handler.type == HandlerType.CHAT_MEMBER:
+                            cls.__dp.chat_member.register(handler.factory(self), *handler.filters)
+                        elif handler.type == HandlerType.MY_CHAT_MEMBER:
+                            cls.__dp.my_chat_member.register(handler.factory(self), *handler.filters)
 
                     if existing_on_module_init:
                         await existing_on_module_init(self)
@@ -51,19 +54,27 @@ class TelegramBot:
         return decorator
 
     @classmethod
+    def handle_my_chat_member(cls, *filters: AnyCallable) -> Callable:
+        return cls.__attach_handler(*filters, type=HandlerType.MY_CHAT_MEMBER)
+
+    @classmethod
+    def handle_chat_member(cls, *filters: AnyCallable) -> Callable:
+        return cls.__attach_handler(*filters, type=HandlerType.CHAT_MEMBER)
+
+    @classmethod
     def handle_message(cls, *filters: AnyCallable) -> Callable:
-        return cls.__attach_handler(*filters, handlers_dict=cls.__message_handlers)
+        return cls.__attach_handler(*filters, type=HandlerType.MESSAGE)
 
     @classmethod
     def handle_inline_query(cls, *filters: AnyCallable) -> Callable:
-        return cls.__attach_handler(*filters, handlers_dict=cls.__inline_query_handlers)
+        return cls.__attach_handler(*filters, type=HandlerType.INLINE_QUERY)
 
     @classmethod
-    def __attach_handler(cls, *filters: AnyCallable, handlers_dict: dict[str, list[Handler]]):
+    def __attach_handler(cls, *filters: AnyCallable, type: HandlerType):
         def decorator(fn):
             cls_name = fn.__qualname__.split('.')[0]
 
-            handlers = handlers_dict.get(cls_name, [])
+            handlers = cls.__handlers.get(cls_name, [])
 
             def factory(self):
                 async def handler(*args, **kwargs):
@@ -76,10 +87,11 @@ class TelegramBot:
 
             handlers.append(Handler(
                 factory=factory,
-                filters=filters
+                filters=filters,
+                type=type
             ))
 
-            handlers_dict[cls_name] = handlers
+            cls.__handlers[cls_name] = handlers
 
             return fn
 

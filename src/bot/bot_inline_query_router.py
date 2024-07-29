@@ -17,7 +17,6 @@ class BotInlineQueryRouter:
                  assets_service: BinanceAssetsQueryService,
                  crypto_repo: CryptoAssetsRepo,
                  ):
-        self.tg_bot = TelegramBot()
         self.crypto_repo = crypto_repo
         self.assets_service = assets_service
 

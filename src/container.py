@@ -1,6 +1,7 @@
 import logging
 from typing import TypeVar, Type
 
+from bot.bot_group_commands_router import BotGroupCommandsRouter
 from bot.bot_inline_query_router import BotInlineQueryRouter
 from bot.bot_personal_commands_router import BotPersonalCommandsRouter
 from cron import CronService
@@ -90,7 +91,10 @@ class Container(metaclass=Singleton):
             crypto_repo=crypto_asset_repo
         )
 
+        bot_group_commands_router = BotGroupCommandsRouter()
+
         instances = [
+            bot_group_commands_router,
             crypto_asset_repo,
             crypto_ingest_service,
             tg_bot,
