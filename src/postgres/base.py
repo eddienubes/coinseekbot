@@ -2,7 +2,6 @@ from datetime import datetime
 
 from sqlalchemy import TIMESTAMP, func
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
-from sqlalchemy.orm.collections import InstrumentedList
 
 
 class Base(DeclarativeBase):
@@ -11,17 +10,21 @@ class Base(DeclarativeBase):
                                                  nullable=False)
 
     def to_dict(self, **kwargs) -> dict:
-        """Convert SQLAlchemy model to dict
+        """
+        Convert SQLAlchemy model to an insertable dict.
+        Strips everything (relations, extra attributes etc.) besides regular table columns
         :param kwargs: Additional fields to add or override
         """
         hm = dict()
 
+        # primary_columns = [col.name for col in self.__table__.primary_key.columns]
+        # foreign_keys = [col.name for col in self.__table__.foreign_keys]
+
+        # noinspection PyTypeChecker
+        regular_columns = [col.name for col in self.__table__.columns]
+
         for k, v in vars(self).items():
-            if (not k.startswith('_')  # Filter out private fields
-                    and not callable(v)  # Filter out methods
-                    and not isinstance(v, Base)
-                    and not isinstance(v, InstrumentedList)  # Filter out joined relationships
-            ):
+            if k in regular_columns:
                 hm[k] = v
 
         return {

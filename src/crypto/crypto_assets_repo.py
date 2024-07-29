@@ -2,23 +2,24 @@ from typing import cast
 
 from numpy.random.mtrand import Sequence
 
-from crypto.entities.crypto_asset import CryptoAsset
-from crypto.entities.crypto_asset_quote import CryptoAssetQuote
-from crypto.entities.crypto_asset_tag import CryptoAssetTag
-from crypto.entities.crypto_asset_to_asset_tag import CryptoAssetToAssetTag
+from .entities.crypto_asset import CryptoAsset
+from .entities.crypto_asset_quote import CryptoAssetQuote
+from .entities.crypto_asset_tag import CryptoAssetTag
 from postgres import PgRepo, pg_session
 
-from sqlalchemy import select, func, outerjoin
-from sqlalchemy.dialects.postgresql import insert, dialect
-from sqlalchemy.orm import MappedColumn, InstrumentedAttribute, aliased, contains_eager
+from sqlalchemy import select, func
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import MappedColumn, InstrumentedAttribute, aliased
 import sqlalchemy as sa
+
+from .entities.crypto_asset_to_asset_tag import CryptoAssetToAssetTag
 
 
 class CryptoAssetsRepo(PgRepo):
 
     @pg_session
-    async def generate(self) -> CryptoAsset:
-        asset = CryptoAsset.random()
+    async def generate(self, **kwargs) -> CryptoAsset:
+        asset = CryptoAsset.random(**kwargs)
         tag1 = CryptoAssetTag.random()
         tag2 = CryptoAssetTag.random()
 
@@ -52,6 +53,7 @@ class CryptoAssetsRepo(PgRepo):
         tags_hm = dict[str, CryptoAssetTag]()
 
         for asset in values:
+            assets.append(asset.to_dict())
             assets_hm[asset.ticker] = assets_hm.get(asset.ticker, [])
 
             for tag in asset.tags:
@@ -61,14 +63,11 @@ class CryptoAssetsRepo(PgRepo):
 
                 assets_hm[asset.ticker].append(tag.name)
 
-            assets.append(asset.to_dict())
-
         if len(tags):
-            set = self.on_conflict_do_update_mapping(CryptoAssetTag, insert(CryptoAssetTag), CryptoAssetTag.name)
             tags_stmt = insert(CryptoAssetTag).values(tags)
             tags_stmt = tags_stmt.on_conflict_do_update(
                 index_elements=[CryptoAssetTag.name],
-                set_=set
+                set_=self.on_conflict_do_update_mapping(CryptoAssetTag, tags_stmt, CryptoAssetTag.name)
             ).returning(CryptoAssetTag)
 
             tags = list((await self.session.scalars(tags_stmt)).all())
@@ -78,12 +77,10 @@ class CryptoAssetsRepo(PgRepo):
         for tag in tags:
             tags_hm[tag.name] = tag
 
-        assets_set = self.on_conflict_do_update_mapping(CryptoAsset, insert(CryptoAsset), conflict)
-        
         assets_stmt = insert(CryptoAsset).values(assets)
         assets_stmt = assets_stmt.on_conflict_do_update(
             index_elements=[conflict],
-            set_=assets_set
+            set_=self.on_conflict_do_update_mapping(CryptoAsset, assets_stmt, conflict)
         ).returning(CryptoAsset)
 
         assets = list((await self.session.scalars(assets_stmt)).all())
@@ -116,7 +113,15 @@ class CryptoAssetsRepo(PgRepo):
         return await self._insert_many(entity=CryptoAssetQuote, values=quotes)
 
     @pg_session
-    async def get_with_latest_quote(self, tickers: Sequence[str]) -> list[CryptoAsset]:
+    async def get_with_latest_quote(self, tickers: Sequence[str], dedupe: bool = True) -> list[CryptoAsset]:
+        """
+        Get assets with latest quote
+        :param tickers: The list of tickers to look for
+        :param dedupe: Deduplicates assets by tickers and leaves only the ones with the most market pairs.
+        Otherwise, it will return matching assets sorted by most market pairs.
+        :return:
+        """
+
         aliased_quote = aliased(CryptoAssetQuote)
 
         quote_subquery = aliased(select(
@@ -157,8 +162,11 @@ class CryptoAssetsRepo(PgRepo):
                 aliased(CryptoAsset, asset_subquery),
                 aliased(CryptoAssetQuote, asset_subquery)
             )
-            .where(asset_subquery.c.rn == 1)
+            # .where(asset_subquery.c.rn == 1)
         )
+
+        if dedupe:
+            query = query.where(asset_subquery.c.rn == 1)
 
         raw = (await self.session.execute(query))
 

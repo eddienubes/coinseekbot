@@ -109,7 +109,7 @@ class Container(metaclass=Singleton):
 
         for instance in instances:
             classname: str = type(instance).__name__
-            logging.info(f"Initializing {classname}...")
+            logging.info(f"Initializing {classname}")
             self.container[type(instance)] = instance
 
             on_module_init = getattr(instance, "on_module_init", None)

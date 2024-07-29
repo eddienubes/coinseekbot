@@ -39,7 +39,8 @@ class CryptoAsset(Base):
     quotes: Mapped[list['CryptoAssetQuote']] = relationship(
         'CryptoAssetQuote',
         # back_populates='asset',
-        lazy='noload'
+        lazy='noload',
+        viewonly=True
     )
 
     latest_quote: Mapped['CryptoAssetQuote'] = relationship(
@@ -50,7 +51,7 @@ class CryptoAsset(Base):
 
     @staticmethod
     def random(**kwargs) -> 'CryptoAsset':
-        return CryptoAsset(
+        base_entity = CryptoAsset(
             ticker=faker.pystr(10, 10),
             name=faker.pystr(10, 10),
             slug=faker.pystr(10, 10),
@@ -59,5 +60,20 @@ class CryptoAsset(Base):
             infinite_supply=False,
             max_supply=str(faker.pyint(1, 100)),
             cmc_id=faker.pyint(1, 100000000),
-            **kwargs
+        ).to_dict()
+
+        return CryptoAsset(
+            **{**base_entity, **kwargs}
         )
+
+    # def to_dict(self):
+    #     return {
+    #         "ticker": self.ticker,
+    #         "name": self.name,
+    #         "slug": self.slug,
+    #         "cmc_date_added": self.cmc_date_added,
+    #         "num_market_pairs": self.num_market_pairs,
+    #         "infinite_supply": self.infinite_supply,
+    #         "max_supply": self.max_supply,
+    #         "cmc_id": self.cmc_id
+    #     }

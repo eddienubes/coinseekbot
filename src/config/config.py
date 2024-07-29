@@ -17,6 +17,7 @@ class Config(BaseSettings):
     # Bot
     #
     bot_token: str
+    bot_inline_cache_timeout_sec: int
 
     #
     # Redis
