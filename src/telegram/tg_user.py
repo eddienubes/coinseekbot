@@ -36,8 +36,8 @@ class TgUser(Base):
     )
 
     @staticmethod
-    def random() -> 'TgUser':
-        return TgUser(
+    def random(**kwargs) -> 'TgUser':
+        base = TgUser(
             tg_id=faker.pyint(),
             is_bot=faker.boolean(),
             first_name=faker.first_name(),
@@ -46,4 +46,8 @@ class TgUser(Base):
             language_code=faker.language_code(),
             is_premium=faker.boolean(),
             added_to_attachment_menu=faker.boolean()
+        )
+
+        return TgUser(
+            **{**base.to_dict(), **kwargs}
         )

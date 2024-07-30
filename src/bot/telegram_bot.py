@@ -1,12 +1,10 @@
 import logging
-from typing import Callable
+from typing import Callable, TypeVar
 
-from aiogram import Dispatcher, Bot
+from aiogram import Dispatcher, Bot, BaseMiddleware
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from inspect import signature
-
-from aiogram.types import Message
 
 from utils import AnyCallable
 from .handler import Handler, HandlerType
@@ -15,10 +13,17 @@ from config import config
 
 
 class TelegramBot:
+    _T = TypeVar('_T', bound=BaseMiddleware)
+
     __dp = Dispatcher()
     # For each class, we store a list of handler factories.
     # A factory encloses the handler function with provided Aiogram filters.
     __handlers: dict[str, list[Handler]] = {}
+
+    def __init__(self, middlewares: list[_T] = None):
+        if middlewares is not None:
+            for m in middlewares:
+                self.__dp.update.middleware(m)
 
     @classmethod
     def router(cls):
@@ -105,4 +110,5 @@ class TelegramBot:
 
     async def start(self, **kwargs) -> None:
         bot = Bot(token=config.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+
         await TelegramBot.__dp.start_polling(bot, **kwargs)

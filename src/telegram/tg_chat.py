@@ -45,6 +45,9 @@ class TgChat(Base):
     invite_link: Mapped[str | None] = mapped_column(sa.String, nullable=True)
     """Chat invite link, for supergroups and channel chats"""
 
+    is_removed: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, server_default=sa.sql.false())
+    """Is bot removed from the chat or blocked by the user in case of private chat"""
+
     users: Mapped[list['TgUser']] = relationship(
         secondary=TgChatToUser.__table__,
         back_populates='chats',
@@ -64,7 +67,8 @@ class TgChat(Base):
             description=faker.pystr(10, 10),
             bio=faker.pystr(10, 10),
             join_by_request=False,
-            invite_link=faker.url()
+            invite_link=faker.url(),
+            is_removed=False
         )
 
         return TgChat(

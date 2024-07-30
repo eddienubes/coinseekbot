@@ -1,7 +1,8 @@
 import logging
 from typing import TypeVar, Type
 
-from bot.bot_chat_router import BotChatRouter
+from bot.chat.bot_chat_router import BotChatRouter
+from bot.engagement_middleware import EngagementMiddleware
 from bot.inline.bot_inline_query_router import BotInlineQueryRouter
 from bot.bot_personal_commands_router import BotPersonalCommandsRouter
 from bot.watch.bot_watch_router import BotWatchRouter
@@ -23,6 +24,7 @@ from postgres.postgres_service import PostgresService
 from redis_client import RedisService
 from telegram.tg_chats_repo import TgChatsRepo
 from telegram.tg_chats_to_users_repo import TgChatsToUsersRepo
+from telegram.tg_service import TgService
 from telegram.tg_users_repo import TgUsersRepo
 from utils.singleton import Singleton
 
@@ -47,8 +49,6 @@ class Container(metaclass=Singleton):
 
     async def init(self):
         register_entities()
-
-        tg_bot = TelegramBot()
 
         bot_personal_commands_handler = BotPersonalCommandsRouter()
 
@@ -108,7 +108,22 @@ class Container(metaclass=Singleton):
             chats_repo=tg_chats_repo
         )
 
+        tg_service = TgService(
+            tg_users_repo=tg_users_repo,
+            tg_chats_repo=tg_chats_repo,
+            tg_chats_to_users_repo=tg_chats_to_users_repo
+        )
+
+        engagement_middleware = EngagementMiddleware(
+            tg_service=tg_service
+        )
+        tg_bot = TelegramBot(
+            middlewares=[engagement_middleware]
+        )
+
         instances = [
+            tg_service,
+            engagement_middleware,
             crypto_watch_repo,
             bot_watch_router,
             tg_chats_to_users_repo,

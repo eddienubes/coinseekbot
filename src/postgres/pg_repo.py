@@ -1,7 +1,10 @@
+import logging
 from typing import Mapping, cast, TypeVar, Sequence
 
+from sqlalchemy import Column
 from sqlalchemy.dialects.postgresql import Insert
 from sqlalchemy.orm import MappedColumn, InstrumentedAttribute
+import sqlalchemy as sa
 
 from .base import Base
 from .pg_session import pg_session_ctx
@@ -14,6 +17,8 @@ class PgRepo(Repo):
     def __init__(self):
         super().__init__(pg_session_ctx)
 
+        self._logger = logging.getLogger(self.__class__.__name__)
+
     def on_conflict_do_update_mapping(self,
                                       entity: T,
                                       insert: Insert,
@@ -21,6 +26,7 @@ class PgRepo(Repo):
                                           MappedColumn | InstrumentedAttribute]
                                       ) -> Mapping:
 
+        """TODO: Use set of keys to update only columns provided in values clause"""
         hm = dict()
 
         if isinstance(conflict, Sequence):
@@ -28,13 +34,20 @@ class PgRepo(Repo):
         else:
             conflict_names = {conflict.name}
 
-        primary_columns = [col.name for col in entity.__table__.primary_key.columns]
-        foreign_keys = [col.name for col in entity.__table__.foreign_keys]
+        regular_cols = entity.get_cols_map()
 
-        for key in insert.excluded.keys():
-            col: MappedColumn = insert.excluded[key]
+        print(insert.excluded)
 
-            if col.name not in conflict_names and col.name not in primary_columns and col.name not in foreign_keys:
-                hm[key] = getattr(insert.excluded, key)
+        for key in regular_cols:
+            col: Column = regular_cols[key]
+
+            if (col.name
+                    # Drop columns that are in conflict columns
+                    not in conflict_names
+                    # Drop columns that are not in regular columns (relations, pks etc.)
+                    # and not col.nullable
+            ):
+                # n = 
+                hm[key] = sa.text(f'coalesce(excluded.{col.name}, {col.name})')
 
         return hm

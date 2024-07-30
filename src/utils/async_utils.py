@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import random
-from typing import Callable
+from typing import Callable, Coroutine
 
 __logger = logging.getLogger(__name__)
 
@@ -41,3 +41,10 @@ async def retry(func: Callable,
             await asyncio.sleep(sleep)
 
     raise Exception(f'async_utils::retry: Max retries {max_retries} exceeded for function: {func.__name__}')
+
+
+def dispatch(coro: Coroutine):
+    """
+    Dispatch coroutine without awaiting it
+    """
+    asyncio.create_task(coro)

@@ -6,6 +6,8 @@ from sqlalchemy.dialects.postgresql import insert
 class TgChatsRepo(PgRepo):
     @pg_session
     async def upsert(self, chat: TgChat) -> TgChat:
+        self._logger.info(f'Upserting chat type: {chat.type}')
+
         query = insert(TgChat).values(chat.to_dict())
         query = query.on_conflict_do_update(
             index_elements=[TgChat.tg_id],
