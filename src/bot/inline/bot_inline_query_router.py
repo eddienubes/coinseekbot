@@ -1,14 +1,11 @@
-import inspect
+from aiogram.types import InlineQuery
 
-from aiogram.enums import ParseMode
-from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent
-
-from bot.telegram_bot import TelegramBot
 from config import config
 from crypto.crypto_assets_repo import CryptoAssetsRepo
 from crypto.entities.crypto_asset import CryptoAsset
 from exchanges.binance import BinanceAssetsQueryService
-from utils.math_utils import round_if
+from ..watch.views import inline_query_result
+from ..telegram_bot import TelegramBot
 
 
 @TelegramBot.router()
@@ -26,32 +23,7 @@ class BotInlineQueryRouter:
             answers = list()
 
             for asset in els:
-                price = round_if(asset.latest_quote.price)
-                change_24h = round(asset.latest_quote.percent_change_24h, 2)
-                indicator = '📉' if change_24h < 0 else '📈'
-
-                answers.append(
-                    InlineQueryResultArticle(
-                        id=str(asset.uuid),
-                        title=f'{asset.name} - {asset.ticker}',
-                        thumbnail_url=asset.large_logo_url,
-                        hide_url=True,
-                        description=inspect.cleandoc(f"""
-                            💸 Price: ${price}
-                            {indicator} {change_24h}% in 24h
-                        """),
-                        input_message_content=InputTextMessageContent(
-                            message_text=inspect.cleandoc(f"""
-                                <b>{asset.ticker}</b> - <code>{asset.name}</code>
-
-                                💸 <b>Price:</b> ${price}
-                                <blockquote>{indicator} {change_24h}% in 24h</blockquote>
-                            """),
-                            disable_web_page_preview=True,
-                            parse_mode=ParseMode.HTML
-                        )
-                    )
-                )
+                answers.append(inline_query_result(asset))
 
             cache_time = config.bot_inline_hot_cache_timeout_sec \
                 if hot else config.bot_inline_cache_timeout_sec
@@ -72,7 +44,9 @@ class BotInlineQueryRouter:
             restored_order = list()
 
             for asset in hot_assets:
-                restored_order.append(found_assets_hm[asset.assetCode.upper()])
+                ticker = asset.assetCode.upper()
+                if ticker in found_assets_hm:
+                    restored_order.append(found_assets_hm[ticker])
 
             await _(restored_order)
             return

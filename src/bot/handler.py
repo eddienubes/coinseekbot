@@ -11,6 +11,7 @@ class HandlerType(Enum):
     INLINE_QUERY = 'INLINE_QUERY'
     CHAT_MEMBER = 'CHAT_MEMBER'
     MY_CHAT_MEMBER = 'MY_CHAT_MEMBER'
+    CALLBACK_QUERY = 'CALLBACK_QUERY'
 
 
 @dataclass

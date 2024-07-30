@@ -18,7 +18,7 @@ async def retry(func: Callable,
                 **kwargs):
     """
     Exponential backoff retry mechanism
-    
+
     :param delay: should be > 1, otherwise it will be a constant delay, not exponential
     """
 
@@ -36,8 +36,8 @@ async def retry(func: Callable,
             else:
                 sleep = delay
 
-            __logger.debug(f'Retrying {func.__name__} attempt {i + 1}/{max_retries} in {sleep} seconds, error: {e}')
+            __logger.info(f'Retrying {func.__name__} attempt {i + 1}/{max_retries} in {sleep} seconds, error: {e}')
 
             await asyncio.sleep(sleep)
 
-    raise Exception(f'async_utils::retry: Max retries f{max_retries} exceeded for function: {func.__name__}')
+    raise Exception(f'async_utils::retry: Max retries {max_retries} exceeded for function: {func.__name__}')

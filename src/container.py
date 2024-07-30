@@ -1,12 +1,14 @@
 import logging
 from typing import TypeVar, Type
 
-from bot.bot_group_commands_router import BotGroupCommandsRouter
-from bot.bot_inline_query_router import BotInlineQueryRouter
+from bot.bot_chat_router import BotChatRouter
+from bot.inline.bot_inline_query_router import BotInlineQueryRouter
 from bot.bot_personal_commands_router import BotPersonalCommandsRouter
+from bot.watch.bot_watch_router import BotWatchRouter
 from cron import CronService
 from crypto.crypto_assets_repo import CryptoAssetsRepo
 from crypto.crypto_ingest_service import CryptoIngestService
+from crypto.crypto_watch_repo import CryptoWatchRepo
 from exchanges.binance import (BinanceAssetsQueryApi,
                                BinanceAssetsQueryService,
                                BinanceCronService,
@@ -89,6 +91,8 @@ class Container(metaclass=Singleton):
             cron=cron_service,
             redis=redis_service
         )
+        crypto_watch_repo = CryptoWatchRepo()
+
         bot_inline_query_handler = BotInlineQueryRouter(
             assets_service=binance_assets_service,
             crypto_repo=crypto_asset_repo
@@ -97,15 +101,20 @@ class Container(metaclass=Singleton):
         tg_users_repo = TgUsersRepo()
         tg_chats_to_users_repo = TgChatsToUsersRepo()
 
-        bot_group_commands_router = BotGroupCommandsRouter(
+        bot_chat_router = BotChatRouter(
+            chats_repo=tg_chats_repo
+        )
+        bot_watch_router = BotWatchRouter(
             chats_repo=tg_chats_repo
         )
 
         instances = [
+            crypto_watch_repo,
+            bot_watch_router,
             tg_chats_to_users_repo,
             tg_users_repo,
             tg_chats_repo,
-            bot_group_commands_router,
+            bot_chat_router,
             crypto_asset_repo,
             crypto_ingest_service,
             tg_bot,

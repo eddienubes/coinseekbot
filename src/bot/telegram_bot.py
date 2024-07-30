@@ -41,6 +41,8 @@ class TelegramBot:
                             cls.__dp.chat_member.register(handler.factory(self), *handler.filters)
                         elif handler.type == HandlerType.MY_CHAT_MEMBER:
                             cls.__dp.my_chat_member.register(handler.factory(self), *handler.filters)
+                        elif handler.type == HandlerType.CALLBACK_QUERY:
+                            cls.__dp.callback_query.register(handler.factory(self), *handler.filters)
 
                     if existing_on_module_init:
                         await existing_on_module_init(self)
@@ -68,6 +70,10 @@ class TelegramBot:
     @classmethod
     def handle_inline_query(cls, *filters: AnyCallable) -> Callable:
         return cls.__attach_handler(*filters, type=HandlerType.INLINE_QUERY)
+
+    @classmethod
+    def handle_callback_query(cls, *filters: AnyCallable) -> Callable:
+        return cls.__attach_handler(*filters, type=HandlerType.CALLBACK_QUERY)
 
     @classmethod
     def __attach_handler(cls, *filters: AnyCallable, type: HandlerType):

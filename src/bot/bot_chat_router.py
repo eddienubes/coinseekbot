@@ -1,10 +1,10 @@
 import inspect
 
 from aiogram.enums import ParseMode
-from aiogram.types import Message, ChatMemberUpdated
+from aiogram.types import ChatMemberUpdated
 
 from bot import TelegramBot
-from aiogram.filters import Command, ChatMemberUpdatedFilter, IS_MEMBER
+from aiogram.filters import ChatMemberUpdatedFilter, IS_MEMBER
 
 from bot.constants import SHIT_MEME_STICKER_ID
 from telegram.tg_chat import TgChat
@@ -12,7 +12,7 @@ from telegram.tg_chats_repo import TgChatsRepo
 
 
 @TelegramBot.router()
-class BotGroupCommandsRouter:
+class BotChatRouter:
     def __init__(self,
                  chats_repo: TgChatsRepo
                  ):
@@ -43,7 +43,3 @@ class BotGroupCommandsRouter:
 
             Use /help to get some <s>mental</s> help.
         """), parse_mode=ParseMode.HTML)
-
-    @TelegramBot.handle_message(Command('watch'))
-    async def watch(self, message: Message):
-        await message.reply('Watch command')
