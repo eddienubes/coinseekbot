@@ -1,9 +1,7 @@
-from typing import cast
 from datetime import datetime
 
 from sqlalchemy import TIMESTAMP, func, Column
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
-from sqlalchemy.sql.elements import KeyedColumnElement
 
 
 class Base(DeclarativeBase):

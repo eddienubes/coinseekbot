@@ -3,6 +3,7 @@ import pytest
 from container import Container
 from telegram.tg_chat import TgChat
 from telegram.tg_chats_repo import TgChatsRepo
+from telegram.tg_user import TgUser
 
 
 class TesteTgChatsRepo:
@@ -28,3 +29,13 @@ class TesteTgChatsRepo:
         updated = await repo.upsert(chat)
 
         assert updated.fullname == 'new fullname'
+
+    async def test_relations(self, repo: TgChatsRepo):
+        chat = TgChat.random()
+        user = TgUser.random()
+
+        chat.users.append(user)
+
+        chat = await repo.add(chat)
+
+        assert chat is not None

@@ -1,4 +1,4 @@
-from typing import Mapping, cast, TypeVar
+from typing import Mapping, cast, TypeVar, Sequence
 
 from sqlalchemy.dialects.postgresql import Insert
 from sqlalchemy.orm import MappedColumn, InstrumentedAttribute
@@ -17,9 +17,16 @@ class PgRepo(Repo):
     def on_conflict_do_update_mapping(self,
                                       entity: T,
                                       insert: Insert,
-                                      conflict: MappedColumn | InstrumentedAttribute) -> Mapping:
+                                      conflict: MappedColumn | InstrumentedAttribute | Sequence[
+                                          MappedColumn | InstrumentedAttribute]
+                                      ) -> Mapping:
 
         hm = dict()
+
+        if isinstance(conflict, Sequence):
+            conflict_names = {conflict.name for conflict in conflict}
+        else:
+            conflict_names = {conflict.name}
 
         primary_columns = [col.name for col in entity.__table__.primary_key.columns]
         foreign_keys = [col.name for col in entity.__table__.foreign_keys]
@@ -27,7 +34,7 @@ class PgRepo(Repo):
         for key in insert.excluded.keys():
             col: MappedColumn = insert.excluded[key]
 
-            if col.name != conflict.name and col.name not in primary_columns and col.name not in foreign_keys:
+            if col.name not in conflict_names and col.name not in primary_columns and col.name not in foreign_keys:
                 hm[key] = getattr(insert.excluded, key)
 
         return hm

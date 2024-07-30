@@ -7,7 +7,7 @@ from postgres import Base
 from decimal import *
 
 from utils import faker
-from .tg_chats_to_users import TgChatsToUsers
+from .tg_chat_to_user import TgChatToUser
 
 if TYPE_CHECKING:
     from .tg_user import TgUser
@@ -46,9 +46,10 @@ class TgChat(Base):
     """Chat invite link, for supergroups and channel chats"""
 
     users: Mapped[list['TgUser']] = relationship(
-        secondary=TgChatsToUsers.__table__,
+        secondary=TgChatToUser.__table__,
         back_populates='chats',
         lazy='noload',
+        # User middle table repo to create a relationship
         viewonly=True
     )
 

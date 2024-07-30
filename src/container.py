@@ -20,6 +20,7 @@ from postgres.alembic.entities import register_entities
 from postgres.postgres_service import PostgresService
 from redis_client import RedisService
 from telegram.tg_chats_repo import TgChatsRepo
+from telegram.tg_chats_to_users_repo import TgChatsToUsersRepo
 from telegram.tg_users_repo import TgUsersRepo
 from utils.singleton import Singleton
 
@@ -94,12 +95,14 @@ class Container(metaclass=Singleton):
         )
         tg_chats_repo = TgChatsRepo()
         tg_users_repo = TgUsersRepo()
+        tg_chats_to_users_repo = TgChatsToUsersRepo()
 
         bot_group_commands_router = BotGroupCommandsRouter(
             chats_repo=tg_chats_repo
         )
 
         instances = [
+            tg_chats_to_users_repo,
             tg_users_repo,
             tg_chats_repo,
             bot_group_commands_router,

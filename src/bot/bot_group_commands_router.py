@@ -4,7 +4,7 @@ from aiogram.enums import ParseMode
 from aiogram.types import Message, ChatMemberUpdated
 
 from bot import TelegramBot
-from aiogram.filters import Command, ChatMemberUpdatedFilter, IS_NOT_MEMBER, IS_MEMBER, MEMBER
+from aiogram.filters import Command, ChatMemberUpdatedFilter, IS_MEMBER
 
 from bot.constants import SHIT_MEME_STICKER_ID
 from telegram.tg_chat import TgChat
@@ -39,12 +39,11 @@ class BotGroupCommandsRouter:
         await message.answer_sticker(sticker=SHIT_MEME_STICKER_ID)
         await message.answer(inspect.cleandoc("""
             What's up Bitcoin holders, condolences to the rest 👋
-            Try @trackyinvestbot inline bot to start searching for your precious coins.
+            Try @coinseekbot inline bot to start searching for your precious coins.
 
-            Use /tracky to get some <s>mental</s> help.
+            Use /help to get some <s>mental</s> help.
         """), parse_mode=ParseMode.HTML)
 
     @TelegramBot.handle_message(Command('watch'))
     async def watch(self, message: Message):
-        print(message)
         await message.reply('Watch command')

@@ -5,7 +5,7 @@ import sqlalchemy as sa
 
 from postgres import Base
 from utils import faker
-from .tg_chats_to_users import TgChatsToUsers
+from .tg_chat_to_user import TgChatToUser
 
 if TYPE_CHECKING:
     from .tg_chat import TgChat
@@ -28,9 +28,10 @@ class TgUser(Base):
     """If the user has added the bot to the attachment menu"""
 
     chats: Mapped[list['TgChat']] = relationship(
-        secondary=TgChatsToUsers.__table__,
+        secondary=TgChatToUser.__table__,
         back_populates='users',
         lazy='noload',
+        # User middle table repo to create a relationship
         viewonly=True
     )
 
