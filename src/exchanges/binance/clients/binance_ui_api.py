@@ -1,3 +1,4 @@
+import functools
 import logging
 
 from aiogram.client.session import aiohttp
@@ -36,6 +37,7 @@ class BinanceUiApi:
             'limit': limit
         }
 
+        @functools.wraps(self.get_all_coins)
         async def _():
             async with self.session.get('/bapi/composite/v1/public/promo/cmc/cryptocurrency/listings/latest',
                                         params=params) as res:
@@ -53,7 +55,7 @@ class BinanceUiApi:
                 return dto.data.body
 
         # Sometimes binance returns 500, retrying
-        return await retry(_, max_retries=7, jitter=True, backoff=1.1)
+        return await retry(_, max_retries=7, jitter=True, backoff=1.15)
 
     async def on_module_destroy(self):
-        await self.session.close()
+        await self.session.__aexit__(None, None, None)
