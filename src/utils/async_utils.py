@@ -22,10 +22,14 @@ async def retry(func: Callable,
     :param delay: should be > 1, otherwise it will be a constant delay, not exponential
     """
 
+    error = None
+
     for i in range(max_retries):
         try:
             return await func(*args, **kwargs)
         except Exception as e:
+            error = e
+
             if i != 0:
                 delay **= backoff
 
@@ -36,11 +40,13 @@ async def retry(func: Callable,
             else:
                 sleep = delay
 
-            __logger.info(f'Retrying {func.__name__} attempt {i + 1}/{max_retries} in {sleep} seconds, error: {e}')
+            __logger.info(
+                f'Retrying {func.__name__} attempt {i + 1}/{max_retries} in {round(sleep, 2)} seconds, error: {e}')
 
             await asyncio.sleep(sleep)
 
-    raise Exception(f'async_utils::retry: Max retries {max_retries} exceeded for function: {func.__name__}')
+    raise Exception(
+        f'async_utils::retry: Max retries {max_retries} exceeded for function: {func.__name__} with error: {error}')
 
 
 def dispatch(coro: Coroutine):

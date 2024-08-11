@@ -8,11 +8,11 @@ from exchanges.binance.dtos.binance_base_dto import BinanceBaseDto
 @dataclasses.dataclass
 class BinanceAllCoinsStatus:
     timestamp: str
-    error_code: str | None
     elapsed: int
     credit_count: int
-    notice: str | None
 
+    error_code: str | None = None
+    notice: str | None = None
     total_count: int | None = None
     error_message: str | None = None
 
