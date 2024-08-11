@@ -1,11 +1,8 @@
 import sqlalchemy as sa
 from sqlalchemy import select
-from sqlalchemy.orm import aliased
 
-from crypto.entities.crypto_asset import CryptoAsset
 from crypto.entities.crypto_watch import CryptoWatch
 from postgres import PgRepo, pg_session
-from telegram.tg_chat import TgChat
 
 
 class CryptoWatchRepo(PgRepo):

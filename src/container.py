@@ -9,7 +9,7 @@ from bot.watch.bot_watch_router import BotWatchRouter
 from cron import CronService
 from crypto.crypto_assets_repo import CryptoAssetsRepo
 from crypto.crypto_ingest_service import CryptoIngestService
-from crypto.crypto_watch_repo import CryptoWatchRepo
+from crypto.crypto_watches_repo import CryptoWatchRepo
 from exchanges.binance import (BinanceAssetsQueryApi,
                                BinanceAssetsQueryService,
                                BinanceCronService,

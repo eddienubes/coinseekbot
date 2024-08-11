@@ -8,7 +8,7 @@ from .entities.crypto_asset_quote import CryptoAssetQuote
 from .entities.crypto_asset_tag import CryptoAssetTag
 
 
-class TestCryptoAssetRepo:
+class TestCryptoAssetsRepo:
     @pytest.fixture(autouse=True, scope='class')
     async def repo(self, container: Container) -> None:
         yield container.get(CryptoAssetsRepo)
