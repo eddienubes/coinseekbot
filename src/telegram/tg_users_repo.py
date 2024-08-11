@@ -6,13 +6,17 @@ from sqlalchemy.dialects.postgresql import insert
 class TgUsersRepo(PgRepo):
     @pg_session
     async def upsert(self, user: TgUser) -> TgUser:
-        query = insert(TgUser).values(user.to_dict())
+        user_dict = user.to_dict()
+        keys = list(user_dict.keys())
+
+        query = insert(TgUser).values(user_dict)
         query = query.on_conflict_do_update(
             index_elements=[TgUser.tg_id],
             set_=self.on_conflict_do_update_mapping(
                 entity=TgUser,
                 insert=query,
-                conflict=TgUser.tg_id
+                conflict=TgUser.tg_id,
+                update=keys
             )
         ).returning(TgUser)
 

@@ -19,13 +19,11 @@ class BotChatRouter:
 
     @TelegramBot.handle_my_chat_member(ChatMemberUpdatedFilter(LEAVE_TRANSITION))
     async def remove(self, message: ChatMemberUpdated):
-        print('----- remove ------')
-        # await self.handle_join_or_removal(message, removed=True)
+        await self.handle_join_or_removal(message, removed=True)
 
     @TelegramBot.handle_my_chat_member(ChatMemberUpdatedFilter(JOIN_TRANSITION))
     async def join(self, message: ChatMemberUpdated):
-        print('----- join ------')
-        # await self.handle_join_or_removal(message, removed=False)
+        await self.handle_join_or_removal(message, removed=False)
         await message.answer_sticker(sticker=SHIT_MEME_STICKER_ID)
         await message.answer(render_join(), parse_mode=ParseMode.HTML)
 

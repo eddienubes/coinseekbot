@@ -23,7 +23,8 @@ class PgRepo(Repo):
                                       entity: T,
                                       insert: Insert,
                                       conflict: MappedColumn | InstrumentedAttribute | Sequence[
-                                          MappedColumn | InstrumentedAttribute]
+                                          MappedColumn | InstrumentedAttribute],
+                                      update: Sequence[str] = None
                                       ) -> Mapping:
 
         """TODO: Use set of keys to update only columns provided in values clause"""
@@ -34,20 +35,29 @@ class PgRepo(Repo):
         else:
             conflict_names = {conflict.name}
 
+        # If the explicit update list provided
+        if update:
+            for col_name in update:
+                if col_name in conflict_names:
+                    continue
+
+                # noinspection PyTypeChecker
+                excluded = getattr(insert.excluded, col_name, None)
+
+                if excluded is None:
+                    raise ValueError(f'Column {col_name} is not present in the excluded clause.')
+
+                hm[col_name] = excluded
+
+            return hm
+
         regular_cols = entity.get_cols_map()
 
-        print(insert.excluded)
-
         for key in regular_cols:
-            col: Column = regular_cols[key]
+            col_name: Column = regular_cols[key]
 
-            if (col.name
-                    # Drop columns that are in conflict columns
-                    not in conflict_names
-                    # Drop columns that are not in regular columns (relations, pks etc.)
-                    # and not col.nullable
-            ):
-                # n = 
-                hm[key] = sa.text(f'coalesce(excluded.{col.name}, {col.name})')
+            # Skip primary keys and columns that are in the conflict list
+            if col_name.name not in conflict_names and col_name.primary_key is False:
+                hm[key] = getattr(insert.excluded, key)
 
         return hm
