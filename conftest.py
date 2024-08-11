@@ -20,7 +20,7 @@ async def event_loop(env):
     loop.close()
 
 
-@pytest.fixture(autouse=True, scope='module')
+@pytest.fixture(autouse=True, scope='class')
 async def container(env):
     container = Container()
     await container.init()
