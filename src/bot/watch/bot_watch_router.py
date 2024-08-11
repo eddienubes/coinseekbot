@@ -16,8 +16,10 @@ class BotWatchRouter:
 
     @TelegramBot.handle_callback_query(WatchCallback.filter())
     async def watch_init(self, query: CallbackQuery, callback_data: WatchCallback):
-        print(query, callback_data)
-        pass
+        if query.from_user.id != callback_data.tg_user_id:
+            return
+
+        print('Watch init')
 
     @TelegramBot.handle_message(Command('watch'))
     async def watch(self, message: Message):

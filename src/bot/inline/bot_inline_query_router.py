@@ -23,7 +23,10 @@ class BotInlineQueryRouter:
             answers = list()
 
             for asset in els:
-                answers.append(inline_query_result(asset))
+                answers.append(inline_query_result(
+                    asset,
+                    tg_user_id=message.from_user.id
+                ))
 
             cache_time = config.bot_inline_hot_cache_timeout_sec \
                 if hot else config.bot_inline_cache_timeout_sec

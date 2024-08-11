@@ -9,7 +9,10 @@ from crypto.entities.crypto_asset import CryptoAsset
 from utils import round_if
 
 
-def inline_query_result(asset: CryptoAsset) -> InlineQueryResultArticle:
+def inline_query_result(
+        asset: CryptoAsset,
+        tg_user_id: int
+) -> InlineQueryResultArticle:
     price = round_if(asset.latest_quote.price)
     change_24h = round(asset.latest_quote.percent_change_24h, 2)
     indicator = '📉' if change_24h < 0 else '📈'
@@ -33,11 +36,19 @@ def inline_query_result(asset: CryptoAsset) -> InlineQueryResultArticle:
             disable_web_page_preview=True,
             parse_mode=ParseMode.HTML,
         ),
-        reply_markup=_reply_markup(watching=False)
+        reply_markup=_reply_markup(
+            watching=False,
+            tg_user_id=tg_user_id,
+            asset_uuid=str(asset.uuid)
+        )
     )
 
 
-def _reply_markup(watching: bool = False) -> InlineKeyboardMarkup:
+def _reply_markup(
+        tg_user_id: int,
+        asset_uuid: str,
+        watching: bool = False,
+) -> InlineKeyboardMarkup:
     if watching:
         return InlineKeyboardMarkup(
             inline_keyboard=[
@@ -55,7 +66,10 @@ def _reply_markup(watching: bool = False) -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text='Watch 👀',
-                    callback_data=WatchCallback().pack()
+                    callback_data=WatchCallback(
+                        tg_user_id=tg_user_id,
+                        asset_uuid=asset_uuid
+                    ).pack()
                 )
             ]
         ]
