@@ -61,6 +61,11 @@ def _reply_markup(
             ]
         )
 
+    cb_dat = WatchCb(
+        tg_user_id=tg_user_id,
+        asset_uuid=asset_uuid
+    ).save()
+
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [

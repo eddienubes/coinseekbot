@@ -54,3 +54,21 @@ def dispatch(coro: Coroutine):
     Dispatch coroutine without awaiting it
     """
     asyncio.create_task(coro)
+
+
+async def wait_for(
+        condition: Callable,
+        interval_ms: int = 30,
+        max_retries: int = 30,
+) -> None:
+    for i in range(max_retries):
+        try:
+            result = await condition()
+
+            if not result:
+                await asyncio.sleep(interval_ms / 1000)
+                continue
+
+            return result
+        except Exception as e:
+            await asyncio.sleep(interval_ms / 1000)

@@ -18,6 +18,8 @@ class BotWatchRouter:
 
     @TelegramBot.handle_callback_query(WatchCb.filter())
     async def watch_select_interval(self, query: CallbackQuery, callback_data: WatchCb, bot: Bot):
+        await callback_data.load()
+
         if query.from_user.id != callback_data.tg_user_id:
             return
 
