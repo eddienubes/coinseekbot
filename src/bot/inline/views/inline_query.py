@@ -3,8 +3,8 @@ import inspect
 from aiogram.enums import ParseMode
 from aiogram.types import InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardButton
 
-from bot.callbacks import DummyCallback
-from bot.watch.callbacks import WatchCallback
+from bot.callbacks import DummyCb
+from bot.inline.views.callbacks import WatchCb
 from crypto.entities.crypto_asset import CryptoAsset
 from utils import round_if
 
@@ -55,7 +55,7 @@ def _reply_markup(
                 [
                     InlineKeyboardButton(
                         text='Watching ✅',
-                        callback_data=DummyCallback().pack()
+                        callback_data=DummyCb().pack()
                     )
                 ]
             ]
@@ -66,7 +66,7 @@ def _reply_markup(
             [
                 InlineKeyboardButton(
                     text='Watch 👀',
-                    callback_data=WatchCallback(
+                    callback_data=WatchCb(
                         tg_user_id=tg_user_id,
                         asset_uuid=asset_uuid
                     ).pack()

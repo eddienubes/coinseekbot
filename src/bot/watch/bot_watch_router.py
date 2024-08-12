@@ -1,8 +1,10 @@
+from aiogram import Bot
 from aiogram.types import Message, CallbackQuery
 
 from aiogram.filters import Command
 from telegram.tg_chats_repo import TgChatsRepo
-from .callbacks import WatchCallback
+from bot.inline.views.callbacks import WatchCb
+from .views.reply_markups import watch_select_interval
 
 from .. import TelegramBot
 
@@ -14,12 +16,18 @@ class BotWatchRouter:
                  ):
         self.__chats_repo = chats_repo
 
-    @TelegramBot.handle_callback_query(WatchCallback.filter())
-    async def watch_init(self, query: CallbackQuery, callback_data: WatchCallback):
+    @TelegramBot.handle_callback_query(WatchCb.filter())
+    async def watch_select_interval(self, query: CallbackQuery, callback_data: WatchCb, bot: Bot):
         if query.from_user.id != callback_data.tg_user_id:
             return
 
-        print('Watch init')
+        await bot.edit_message_reply_markup(
+            inline_message_id=query.inline_message_id,
+            reply_markup=watch_select_interval(
+                asset_uuid=callback_data.asset_uuid,
+                tg_user_id=callback_data.tg_user_id
+            )
+        )
 
     @TelegramBot.handle_message(Command('watch'))
     async def watch(self, message: Message):

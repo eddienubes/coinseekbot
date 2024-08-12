@@ -4,7 +4,7 @@ from config import config
 from crypto.crypto_assets_repo import CryptoAssetsRepo
 from crypto.entities.crypto_asset import CryptoAsset
 from exchanges.binance import BinanceAssetsQueryService
-from ..watch.views import inline_query_result
+from .views.inline_query import inline_query_result
 from ..telegram_bot import TelegramBot
 
 
