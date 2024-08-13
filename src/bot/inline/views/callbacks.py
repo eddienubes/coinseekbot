@@ -1,7 +1,11 @@
 from bot.callbacks import RedisCb
 
 
-class WatchCb(RedisCb, prefix='WatchCb'):
+class AddToFavouritesCb(RedisCb, prefix='AFCb'):
     asset_uuid: str
     tg_user_id: int
-    interval: str
+
+
+class RemoveFromFavouritesCb(RedisCb, prefix='RFCb'):
+    asset_uuid: str
+    tg_user_id: int

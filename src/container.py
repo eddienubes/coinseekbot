@@ -3,13 +3,15 @@ from typing import TypeVar, Type
 
 from bot.chat.bot_chat_router import BotChatRouter
 from bot.engagement_middleware import EngagementMiddleware
+from bot.favourites.bot_favourites_router import BotFavouritesRouter
 from bot.inline.bot_inline_query_router import BotInlineQueryRouter
 from bot.bot_personal_commands_router import BotPersonalCommandsRouter
 from bot.watch.bot_watch_router import BotWatchRouter
 from cron import CronService
 from crypto.crypto_assets_repo import CryptoAssetsRepo
+from crypto.crypto_favourites_repo import CryptoFavouritesRepo
 from crypto.crypto_ingest_service import CryptoIngestService
-from crypto.crypto_watches_repo import CryptoWatchRepo
+from crypto.crypto_watches_repo import CryptoWatchesRepo
 from exchanges.binance import (BinanceAssetsQueryApi,
                                BinanceAssetsQueryService,
                                BinanceCronService,
@@ -91,7 +93,8 @@ class Container(metaclass=Singleton):
             cron=cron_service,
             redis=redis_service
         )
-        crypto_watch_repo = CryptoWatchRepo()
+        crypto_watches_repo = CryptoWatchesRepo()
+        crypto_favourites_repo = CryptoFavouritesRepo()
 
         bot_inline_query_handler = BotInlineQueryRouter(
             assets_service=binance_assets_service,
@@ -105,7 +108,18 @@ class Container(metaclass=Singleton):
             chats_repo=tg_chats_repo
         )
         bot_watch_router = BotWatchRouter(
-            chats_repo=tg_chats_repo
+            chats_repo=tg_chats_repo,
+            assets_repo=crypto_asset_repo,
+            crypto_watches_repo=crypto_watches_repo,
+            crypto_favourites_repo=crypto_favourites_repo,
+            tg_users_repo=tg_users_repo
+        )
+        bot_favourites_router = BotFavouritesRouter(
+            chats_repo=tg_chats_repo,
+            assets_repo=crypto_asset_repo,
+            crypto_watches_repo=crypto_watches_repo,
+            crypto_favourites_repo=crypto_favourites_repo,
+            tg_users_repo=tg_users_repo
         )
 
         tg_service = TgService(
@@ -122,9 +136,10 @@ class Container(metaclass=Singleton):
         )
 
         instances = [
+            bot_favourites_router,
             tg_service,
             engagement_middleware,
-            crypto_watch_repo,
+            crypto_watches_repo,
             bot_watch_router,
             tg_chats_to_users_repo,
             tg_users_repo,

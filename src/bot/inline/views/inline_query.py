@@ -4,12 +4,12 @@ from aiogram.enums import ParseMode
 from aiogram.types import InlineKeyboardMarkup, InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardButton
 
 from bot.callbacks import DummyCb
-from bot.inline.views.callbacks import WatchCb
+from bot.inline.views.callbacks import AddToFavouritesCb, RemoveFromFavouritesCb
 from crypto.entities.crypto_asset import CryptoAsset
 from utils import round_if
 
 
-def inline_query_result(
+async def inline_query_result(
         asset: CryptoAsset,
         tg_user_id: int
 ) -> InlineQueryResultArticle:
@@ -36,32 +36,37 @@ def inline_query_result(
             disable_web_page_preview=True,
             parse_mode=ParseMode.HTML,
         ),
-        reply_markup=_reply_markup(
-            watching=False,
+        reply_markup=await render_query_result_reply_markup(
+            favourite=False,
             tg_user_id=tg_user_id,
             asset_uuid=str(asset.uuid)
         )
     )
 
 
-def _reply_markup(
+async def render_query_result_reply_markup(
         tg_user_id: int,
         asset_uuid: str,
-        watching: bool = False,
+        favourite: bool = False,
 ) -> InlineKeyboardMarkup:
-    if watching:
+    if favourite:
+        cb_data = await RemoveFromFavouritesCb(
+            tg_user_id=tg_user_id,
+            asset_uuid=asset_uuid
+        ).save()
+
         return InlineKeyboardMarkup(
             inline_keyboard=[
                 [
                     InlineKeyboardButton(
-                        text='Watching ✅',
-                        callback_data=DummyCb().pack()
+                        text='Favourite 💫',
+                        callback_data=cb_data
                     )
                 ]
             ]
         )
 
-    cb_dat = WatchCb(
+    cb_data = await AddToFavouritesCb(
         tg_user_id=tg_user_id,
         asset_uuid=asset_uuid
     ).save()
@@ -70,11 +75,8 @@ def _reply_markup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text='Watch 👀',
-                    callback_data=WatchCb(
-                        tg_user_id=tg_user_id,
-                        asset_uuid=asset_uuid
-                    ).pack()
+                    text='Save ⭐️',
+                    callback_data=cb_data
                 )
             ]
         ]

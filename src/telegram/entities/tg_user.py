@@ -5,10 +5,10 @@ import sqlalchemy as sa
 
 from postgres import Base
 from utils import faker
-from .tg_chat_to_user import TgChatToUser
+from telegram.entities.tg_chat_to_user import TgChatToUser
 
 if TYPE_CHECKING:
-    from .tg_chat import TgChat
+    from telegram.entities.tg_chat import TgChat
 
 
 class TgUser(Base):
@@ -33,6 +33,12 @@ class TgUser(Base):
         lazy='noload',
         # User middle table repo to create a relationship
         viewonly=True
+    )
+
+    chat: Mapped['TgChat'] = relationship(
+        secondary=TgChatToUser.__table__,
+        lazy='joined',
+        uselist=False
     )
 
     @staticmethod

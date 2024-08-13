@@ -1,13 +1,11 @@
 from postgres import PgRepo, pg_session
-from .tg_chat import TgChat
+from telegram.entities.tg_chat import TgChat
 from sqlalchemy.dialects.postgresql import insert
 
 
 class TgChatsRepo(PgRepo):
     @pg_session
     async def upsert(self, chat: TgChat) -> TgChat:
-        self._logger.info(f'Upserting chat type: {chat.type}')
-
         chat_dict = chat.to_dict()
 
         query = insert(TgChat).values(chat_dict)

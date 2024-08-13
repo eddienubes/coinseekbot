@@ -1,7 +1,7 @@
 from postgres import PgRepo, pg_session
 from sqlalchemy.dialects.postgresql import insert
 
-from .tg_chat_to_user import TgChatToUser
+from telegram.entities.tg_chat_to_user import TgChatToUser
 
 
 class TgChatsToUsersRepo(PgRepo):

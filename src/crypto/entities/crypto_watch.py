@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, cast, Sequence
+from typing import TYPE_CHECKING, cast
 
 import sqlalchemy as sa
 from sqlalchemy.orm import mapped_column, Mapped, relationship
@@ -9,7 +9,7 @@ from postgres import Base
 
 if TYPE_CHECKING:
     from .crypto_asset import CryptoAsset
-    from telegram.tg_chat import TgChat
+    from telegram.entities.tg_chat import TgChat
 
 
 class WatchInterval(Enum):
@@ -19,7 +19,7 @@ class WatchInterval(Enum):
     EVERY_6_HOURS = 'EVERY_6_HOURS'
     EVERY_12_HOURS = 'EVERY_12_HOURS'
     EVERY_DAY = 'EVERY_DAY'
-    EVERY_WEEK = 'EVERY_WEEK'
+    # EVERY_WEEK = 'EVERY_WEEK'
 
 
 class CryptoWatch(Base):

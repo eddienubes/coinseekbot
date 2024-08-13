@@ -2,10 +2,10 @@ from aiogram.enums import ParseMode
 from aiogram.types import ChatMemberUpdated
 
 from bot import TelegramBot
-from aiogram.filters import ChatMemberUpdatedFilter, IS_MEMBER, IS_NOT_MEMBER, LEAVE_TRANSITION, JOIN_TRANSITION
+from aiogram.filters import ChatMemberUpdatedFilter, LEAVE_TRANSITION, JOIN_TRANSITION
 
 from bot.constants import SHIT_MEME_STICKER_ID
-from telegram.tg_chat import TgChat
+from telegram.entities.tg_chat import TgChat
 from telegram.tg_chats_repo import TgChatsRepo
 from .views import render_join
 

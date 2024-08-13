@@ -6,7 +6,6 @@ from aiogram.filters.callback_data import CallbackData
 from pydantic import Field
 
 from redis_client import RedisService
-from utils import dispatch
 
 
 class DummyCb(CallbackData, prefix='DummyCb'):
@@ -19,12 +18,13 @@ class RedisCb[T](CallbackData, prefix='R'):
     redis_prefix: ClassVar = 'cb'
 
     def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
         hints = get_type_hints(cls)
         for field, field_type in hints.items():
             if not hasattr(cls, field):
                 # Make field optional and set default to None
                 setattr(cls, field, Field(default=None))
+
+        super().__init_subclass__(**kwargs)
 
     def model_dump_json(self, *args, **kwargs) -> str:
         return json.dumps({'id': self.id})
@@ -34,25 +34,39 @@ class RedisCb[T](CallbackData, prefix='R'):
 
     @classmethod
     def unpack(cls: Type[T], value: str) -> T:
-        return cls(id=value.split('::')[1])
+        try:
+            prefix, *data = value.split('::')
 
-    def save(self) -> str:
+            if prefix != cls.__prefix__:
+                raise ValueError('Invalid prefix')
+        except Exception as e:
+            raise ValueError('Invalid callback data, supposedly prefix is missing, error: {e}')
+
+        try:
+            redis_id = data[0]
+
+            return cls(id=redis_id)
+        except Exception as e:
+            raise ValueError(f'Unable to unpack callback data: {value}, error: {e}')
+
+    async def save(self) -> str:
         """Create a callback data, saves it to redis and returns the id to use as callback data"""
         from container import Container
         container = Container()
 
         redis_service = container.get(RedisService)
 
-        id = str(uuid.uuid4())
+        self.id = str(uuid.uuid4())
 
-        json_str = self.model_dump_json()
+        hm = dict()
+
+        for key in self.model_fields:
+            hm[key] = getattr(self, key)
+
+        json_str = json.dumps(hm)
 
         # store callbacks in redis for 30 days
-        set_coroutine = redis_service.set(f'{self.__class__.redis_prefix}:{id}', json_str, ex_s=60 * 60 * 24 * 30)
-
-        dispatch(set_coroutine)
-
-        self.id = id
+        await redis_service.set(f'{self.__class__.redis_prefix}:{self.id}', json_str, ex_s=60 * 60 * 24 * 30)
 
         # Return cb data key
         return self.pack()
@@ -74,7 +88,7 @@ class RedisCb[T](CallbackData, prefix='R'):
 
         data = json.loads(data_str)
 
-        for key, value in data.items():
-            setattr(self, key, value)
+        for key in self.model_fields:
+            setattr(self, key, data[key])
 
         return self

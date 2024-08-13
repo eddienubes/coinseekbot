@@ -4,13 +4,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 import sqlalchemy as sa
 
 from postgres import Base
-from decimal import *
 
 from utils import faker
 from .tg_chat_to_user import TgChatToUser
 
 if TYPE_CHECKING:
-    from .tg_user import TgUser
+    from telegram.entities.tg_user import TgUser
 
 
 class TgChat(Base):

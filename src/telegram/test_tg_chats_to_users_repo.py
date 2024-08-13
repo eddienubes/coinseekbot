@@ -1,11 +1,11 @@
 import pytest
 
 from container import Container
-from .tg_chat import TgChat
+from telegram.entities.tg_chat import TgChat
 
-from .tg_chat_to_user import TgChatToUser
+from telegram.entities.tg_chat_to_user import TgChatToUser
 from .tg_chats_to_users_repo import TgChatsToUsersRepo
-from .tg_user import TgUser
+from telegram.entities.tg_user import TgUser
 
 
 class TestTgChatsToUsersRepo:

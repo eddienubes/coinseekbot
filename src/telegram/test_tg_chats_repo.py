@@ -1,9 +1,9 @@
 import pytest
 
 from container import Container
-from telegram.tg_chat import TgChat
+from telegram.entities.tg_chat import TgChat
 from telegram.tg_chats_repo import TgChatsRepo
-from telegram.tg_user import TgUser
+from telegram.entities.tg_user import TgUser
 
 
 class TesteTgChatsRepo:

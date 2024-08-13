@@ -1,3 +1,5 @@
+import asyncio
+
 from aiogram.types import InlineQuery
 
 from config import config
@@ -20,13 +22,9 @@ class BotInlineQueryRouter:
     @TelegramBot.handle_inline_query()
     async def search(self, message: InlineQuery) -> None:
         async def _(els: list[CryptoAsset], hot: bool = False):
-            answers = list()
-
-            for asset in els:
-                answers.append(inline_query_result(
-                    asset,
-                    tg_user_id=message.from_user.id
-                ))
+            answers = list(await asyncio.gather(
+                *[inline_query_result(el, tg_user_id=message.from_user.id) for el in els]
+            ))
 
             cache_time = config.bot_inline_hot_cache_timeout_sec \
                 if hot else config.bot_inline_cache_timeout_sec

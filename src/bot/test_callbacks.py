@@ -1,4 +1,3 @@
-from utils import wait_for
 from .callbacks import RedisCb
 
 
@@ -9,7 +8,7 @@ class TestCallbacks:
             some_str: str
 
         cb = SomeCb(some_int=1, some_str='test')
-        cb_data = cb.save()
+        cb_data = await cb.save()
 
         assert cb_data == f'SomeCb::{cb.id}'
 
@@ -17,16 +16,14 @@ class TestCallbacks:
 
         assert cb_data == f'SomeCb::{cb.id}'
 
-        unpacked_id = SomeCb.unpack(cb_data)
+        unpacked_cb = SomeCb.unpack(cb_data)
 
-        assert unpacked_id.id == cb.id
-        assert unpacked_id.some_int is None
-        assert unpacked_id.some_str is None
+        assert unpacked_cb.id == cb.id
+        assert unpacked_cb.some_int is None
+        assert unpacked_cb.some_str is None
 
-        async def _():
-            await cb.load()
+        await unpacked_cb.load()
 
-            assert cb.some_int == 1
-            assert cb.some_str == 'test'
-
-        await wait_for(_)
+        assert unpacked_cb.id == cb.id
+        assert unpacked_cb.some_int == 1
+        assert unpacked_cb.some_str == 'test'
