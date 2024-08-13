@@ -7,6 +7,7 @@ from bot.favourites.bot_favourites_router import BotFavouritesRouter
 from bot.inline.bot_inline_query_router import BotInlineQueryRouter
 from bot.bot_personal_commands_router import BotPersonalCommandsRouter
 from bot.watch.bot_watch_router import BotWatchRouter
+from bot.watch.bot_watch_service import BotWatchService
 from cron import CronService
 from crypto.crypto_assets_repo import CryptoAssetsRepo
 from crypto.crypto_favourites_repo import CryptoFavouritesRepo
@@ -107,12 +108,20 @@ class Container(metaclass=Singleton):
         bot_chat_router = BotChatRouter(
             chats_repo=tg_chats_repo
         )
-        bot_watch_router = BotWatchRouter(
+        bot_watch_service = BotWatchService(
             chats_repo=tg_chats_repo,
             assets_repo=crypto_asset_repo,
             crypto_watches_repo=crypto_watches_repo,
             crypto_favourites_repo=crypto_favourites_repo,
             tg_users_repo=tg_users_repo
+        )
+        bot_watch_router = BotWatchRouter(
+            chats_repo=tg_chats_repo,
+            assets_repo=crypto_asset_repo,
+            crypto_watches_repo=crypto_watches_repo,
+            crypto_favourites_repo=crypto_favourites_repo,
+            tg_users_repo=tg_users_repo,
+            bot_watch_service=bot_watch_service
         )
         bot_favourites_router = BotFavouritesRouter(
             chats_repo=tg_chats_repo,

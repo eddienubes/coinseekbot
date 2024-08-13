@@ -17,7 +17,7 @@ class TestCryptoAssetsRepo:
         asset = await repo.generate()
         assert asset
 
-        found = await repo.find_by_ticker(asset.ticker)
+        found = await repo.get_by_ticker(asset.ticker)
 
         assert found.uuid == asset.uuid
 

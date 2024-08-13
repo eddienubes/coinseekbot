@@ -54,7 +54,7 @@ class BinanceCryptoTradingPair(Base):
     def validate_symbol(self, key, symbol: str):
         if type(symbol) is str:
             return symbol.upper()
-
+   
     status: Mapped[str] = mapped_column(String, nullable=False)
     iceberg_allowed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     oco_allowed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

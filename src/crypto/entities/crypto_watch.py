@@ -3,6 +3,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, cast
 
 import sqlalchemy as sa
+from marshmallow import validates
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from postgres import Base
@@ -32,7 +33,13 @@ class CryptoWatch(Base):
     interval: Mapped[WatchInterval] = mapped_column(sa.Enum(WatchInterval, native_enum=False, length=None),
                                                     nullable=False)
 
-    next_execution_at: Mapped[datetime] = mapped_column(sa.TIMESTAMP, nullable=True)
+    next_execution_at: Mapped[datetime | None] = mapped_column(sa.TIMESTAMP, nullable=True)
+
+    @validates('next_execution_at')
+    def validate_next_execution_at(self, value: datetime | None) -> datetime | None:
+        if value is not None:
+            assert value > datetime.now(), 'next_execution_at must be in the future'
+        return value
 
     asset: Mapped['CryptoAsset'] = relationship(
         'CryptoAsset',

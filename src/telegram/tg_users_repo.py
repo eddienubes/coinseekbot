@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from sqlalchemy.orm import contains_eager
+
 from postgres import PgRepo, pg_session
 from telegram.entities.tg_chat import TgChat
 from telegram.entities.tg_user import TgUser
@@ -16,11 +18,13 @@ class TgUsersRepo(PgRepo):
     ) -> TgUser | None:
         query = (
             sa.select(TgUser)
-            .outerjoin(TgChat, TgChat.tg_id == tg_chat_id)
+            .outerjoin(TgChat, tg_chat_id == TgChat.tg_id)
             .where(
                 sa.and_(
                     tg_user_id == TgUser.tg_id
                 )
+            ).options(
+                contains_eager(TgUser.chat)
             )
         )
 

@@ -30,6 +30,9 @@ class RedisCb[T](CallbackData, prefix='R'):
         return json.dumps({'id': self.id})
 
     def pack(self) -> str:
+        if not self.id:
+            raise ValueError('Use .save() method to save callback data to redis and get the id')
+
         return f'{self.__prefix__}::{self.id}'
 
     @classmethod

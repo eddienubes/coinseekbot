@@ -1,36 +1,45 @@
-from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 from aiogram.filters import Command
 
 from crypto.crypto_assets_repo import CryptoAssetsRepo
 from crypto.crypto_watches_repo import CryptoWatchesRepo
 from crypto.crypto_favourites_repo import CryptoFavouritesRepo
+from crypto.entities.crypto_watch import CryptoWatch, WatchInterval
+from telegram.entities.tg_chat import TgChat
 from telegram.tg_chats_repo import TgChatsRepo
 from telegram.tg_users_repo import TgUsersRepo
-from .states import WatchMenuState
-
+from .bot_watch_service import BotWatchService
+from .views.callbacks import WatchSelectIntervalCb, StopWatchingCb, StopWatchingConfirmationCb, StartWatchingCb, \
+    WatchListFavouritesCb
+from .views.views import render_watch_select_text, render_start_watching_list, \
+    render_favourite_list_text, render_favourites_list, \
+    render_stop_watching_confirm_text, render_stop_watching_confirm_reply_markup
 from .. import TelegramBot
+import uuid
+from datetime import datetime
 
 
 @TelegramBot.router()
 class BotWatchRouter:
-    def __init__(self,
-                 chats_repo: TgChatsRepo,
-                 assets_repo: CryptoAssetsRepo,
-                 crypto_watches_repo: CryptoWatchesRepo,
-                 crypto_favourites_repo: CryptoFavouritesRepo,
-                 tg_users_repo: TgUsersRepo
-                 ):
+    def __init__(
+            self,
+            chats_repo: TgChatsRepo,
+            assets_repo: CryptoAssetsRepo,
+            crypto_watches_repo: CryptoWatchesRepo,
+            crypto_favourites_repo: CryptoFavouritesRepo,
+            tg_users_repo: TgUsersRepo,
+            bot_watch_service: BotWatchService
+    ):
         self.__chats_repo = chats_repo
         self.__assets_repo = assets_repo
         self.__crypto_watches_repo = crypto_watches_repo
         self.__crypto_favorites_repo = crypto_favourites_repo
         self.__tg_users_repo = tg_users_repo
+        self.__bot_watch_service = bot_watch_service
 
     @TelegramBot.handle_message(Command('watch'))
-    async def watch(self, message: Message, state: FSMContext):
-        await state.set_state(WatchMenuState.SHOW_FAVOURITES)
+    async def watch_list_favourites_command(self, message: Message):
 
         tg_user = await self.__tg_users_repo.get_by_tg_id_with_chat(
             tg_user_id=message.from_user.id,
@@ -40,7 +49,7 @@ class BotWatchRouter:
         # If there is no user, that means no crypto favourites
         if not tg_user:
             await message.reply(
-                text='Watch command'
+                text=render_favourite_list_text()
             )
             return
 
@@ -49,29 +58,136 @@ class BotWatchRouter:
             tg_chat_uuid=tg_user.chat.uuid
         )
 
-        btns = []
-
-        for fav in favourites.hits:
-            if fav.watch:
-                postfix = f'- Watching 👀'
-            else:
-                postfix = ''
-
-            row = [
-                InlineKeyboardButton(
-                    text=f'{fav.asset.name} {postfix}',
-                    callback_data='asdfj'
-                )
-            ]
-
-            btns.append(row)
-
         await message.reply(
-            text='Watch command with assets',
-            reply_markup=InlineKeyboardMarkup(
-                inline_keyboard=[
-                    *btns
-                ]
+            text=render_favourite_list_text(),
+            reply_markup=render_favourites_list(
+                tg_user_id=message.from_user.id,
+                favourites=favourites
             )
-
         )
+
+    @TelegramBot.handle_callback_query(WatchListFavouritesCb.filter())
+    async def watch_list_favourites_cb(self, query: CallbackQuery, callback_data: WatchListFavouritesCb):
+        if query.from_user.id != callback_data.tg_user_id:
+            return
+
+        tg_user = await self.__tg_users_repo.get_by_tg_id_with_chat(
+            tg_user_id=query.from_user.id,
+            tg_chat_id=query.message.chat.id
+        )
+
+        favourites = await self.__crypto_favorites_repo.get_by_tg_user_uuid_with_assets(
+            tg_user_uuid=tg_user.uuid,
+            tg_chat_uuid=tg_user.chat.uuid
+        )
+
+        await query.message.edit_text(
+            text=render_favourite_list_text(),
+            reply_markup=render_favourites_list(
+                tg_user_id=query.from_user.id,
+                favourites=favourites
+            )
+        )
+
+    @TelegramBot.handle_callback_query(WatchSelectIntervalCb.filter())
+    async def select_interval(self, query: CallbackQuery, callback_data: WatchSelectIntervalCb):
+        if query.from_user.id != callback_data.tg_user_id:
+            return
+
+        asset = await self.__assets_repo.try_get_by_uuid(callback_data.asset_uuid)
+
+        await query.message.edit_text(
+            text=render_watch_select_text(asset),
+            reply_markup=await render_start_watching_list(
+                tg_user_id=query.from_user.id,
+                asset_uuid=callback_data.asset_uuid
+            )
+        )
+
+    @TelegramBot.handle_callback_query(StartWatchingCb.filter())
+    async def start_watching(self, query: CallbackQuery, callback_data: StartWatchingCb):
+        await callback_data.load()
+
+        if query.from_user.id != callback_data.tg_user_id:
+            return
+
+        asset = await self.__assets_repo.try_get_by_uuid(callback_data.asset_uuid)
+        tg_user = await self.__tg_users_repo.get_by_tg_id_with_chat(
+            tg_user_id=query.from_user.id,
+            tg_chat_id=query.message.chat.id
+        )
+
+        await self.__crypto_watches_repo.upsert(
+            CryptoWatch(
+                asset_uuid=asset.uuid,
+                tg_chat_uuid=tg_user.chat.uuid,
+                interval=WatchInterval(callback_data.interval),
+                deleted_at=None
+            )
+        )
+
+        favourites = await self.__crypto_favorites_repo.get_by_tg_user_uuid_with_assets(
+            tg_user_uuid=tg_user.uuid,
+            tg_chat_uuid=tg_user.chat.uuid
+        )
+
+        await query.message.edit_text(
+            text=render_favourite_list_text(),
+            reply_markup=render_favourites_list(
+                tg_user_id=query.from_user.id,
+                favourites=favourites
+            )
+        )
+
+    @TelegramBot.handle_callback_query(StopWatchingConfirmationCb.filter())
+    async def stop_watching_confirmation(
+            self, query: CallbackQuery,
+            callback_data: StopWatchingConfirmationCb
+    ):
+        if query.from_user.id != callback_data.tg_user_id:
+            return
+
+        asset = await self.__assets_repo.try_get_by_uuid(callback_data.asset_uuid)
+
+        await query.message.edit_text(
+            text=render_stop_watching_confirm_text(
+                asset=asset
+            ),
+            reply_markup=render_stop_watching_confirm_reply_markup(
+                tg_user_id=query.from_user.id,
+                asset_uuid=callback_data.asset_uuid
+            )
+        )
+
+    @TelegramBot.handle_callback_query(StopWatchingCb.filter())
+    async def stop_watching(self, query: CallbackQuery, callback_data: StopWatchingCb):
+        if query.from_user.id != callback_data.tg_user_id:
+            return
+
+        tg_user = await self.__tg_users_repo.get_by_tg_id_with_chat(
+            tg_user_id=query.from_user.id,
+            tg_chat_id=query.message.chat.id
+        )
+
+        watch = CryptoWatch(
+            asset_uuid=uuid.UUID(callback_data.asset_uuid),
+            tg_chat_uuid=tg_user.chat.uuid,
+            deleted_at=datetime.now()
+        )
+
+        await self.__crypto_watches_repo.update(watch, [CryptoWatch.asset_uuid, CryptoWatch.tg_chat_uuid])
+
+        favourites = await self.__crypto_favorites_repo.get_by_tg_user_uuid_with_assets(
+            tg_user_uuid=tg_user.uuid,
+            tg_chat_uuid=tg_user.chat.uuid
+        )
+
+        await query.message.edit_text(
+            text=render_favourite_list_text(),
+            reply_markup=render_favourites_list(
+                tg_user_id=tg_user.tg_id,
+                favourites=favourites
+            )
+        )
+
+        await query.answer('Stopped watching.')

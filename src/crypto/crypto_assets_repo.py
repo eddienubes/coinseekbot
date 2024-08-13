@@ -29,14 +29,14 @@ class CryptoAssetsRepo(PgRepo):
         return asset
 
     @pg_session
-    async def find_by_uuid(self, uuid: str) -> CryptoAsset | None:
+    async def get_by_uuid(self, uuid: str) -> CryptoAsset | None:
         query = select(CryptoAsset).where(uuid == CryptoAsset.uuid)
 
         hit = await self.session.execute(query)
         return hit.scalar()
 
     @pg_session
-    async def try_find_by_uuid(self, uuid: str) -> CryptoAsset:
+    async def try_get_by_uuid(self, uuid: str) -> CryptoAsset:
         query = select(CryptoAsset).where(uuid == CryptoAsset.uuid)
 
         hit = await self.session.execute(query)
@@ -48,7 +48,7 @@ class CryptoAssetsRepo(PgRepo):
         return hit
 
     @pg_session
-    async def find_by_ticker(self, ticker: str) -> CryptoAsset | None:
+    async def get_by_ticker(self, ticker: str) -> CryptoAsset | None:
         query = select(CryptoAsset).where(ticker == CryptoAsset.ticker)
 
         hit = await self.session.execute(query)

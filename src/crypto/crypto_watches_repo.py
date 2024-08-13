@@ -1,12 +1,18 @@
 import sqlalchemy as sa
+from numpy import save
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import InstrumentedAttribute
 
 from crypto.entities.crypto_watch import CryptoWatch
 from postgres import PgRepo, pg_session
 
 
 class CryptoWatchesRepo(PgRepo):
+    @pg_session
+    async def update(self, watch: CryptoWatch, by: list[sa.Column | InstrumentedAttribute]) -> None:
+        await self._update(CryptoWatch, by, watch)
+
     @pg_session
     async def get_with_joins(self, asset_uuid: sa.UUID, tg_chat_uuid: sa.UUID) -> CryptoWatch | None:
         query = (

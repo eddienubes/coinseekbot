@@ -37,7 +37,7 @@ class TgUser(Base):
 
     chat: Mapped['TgChat'] = relationship(
         secondary=TgChatToUser.__table__,
-        lazy='joined',
+        lazy='noload',
         uselist=False
     )
 

@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 
+from aiogram.types import Chat
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import sqlalchemy as sa
 
@@ -72,4 +73,18 @@ class TgChat(Base):
 
         return TgChat(
             **{**base.to_dict(), **kwargs}
+        )
+
+    @staticmethod
+    def from_tg(chat: Chat) -> 'TgChat':
+        return TgChat(
+            tg_id=chat.id,
+            type=chat.type,
+            username=chat.username,
+            fullname=chat.full_name,
+            is_forum=chat.is_forum,
+            description=chat.description,
+            bio=chat.bio,
+            join_by_request=chat.join_by_request,
+            invite_link=chat.invite_link
         )

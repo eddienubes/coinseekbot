@@ -1,11 +1,12 @@
 import logging
 from typing import Mapping, cast, TypeVar, Sequence
 
-from sqlalchemy import Column
+from sqlalchemy import Column, inspect
 from sqlalchemy.dialects.postgresql import Insert
 from sqlalchemy.orm import MappedColumn, InstrumentedAttribute
 import sqlalchemy as sa
 
+from . import pg_engine
 from .base import Base
 from .pg_session import pg_session_ctx
 from .repo import Repo

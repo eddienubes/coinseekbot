@@ -1,8 +1,9 @@
-from typing import TypeVar, Any, Type, Sequence, Iterable
+from typing import TypeVar, Any, Type, Sequence, Iterable, Collection
 
-from sqlalchemy import delete
+from sqlalchemy import delete, update, Column
 from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
+import sqlalchemy as sa
 
 from .session_context import SessionContext
 from .base import Base
@@ -25,6 +26,21 @@ class Repo:
         self.merge = self.__ctx.wrap(self.merge)
 
         # _ methods don't need to be wrapped, as they are not supposed to be used directly.
+
+    async def _update(self, entity: Type[__T], by: Sequence[Column], value: __T) -> None:
+        """
+        Updates entity in the session.
+        Do not use directly
+        """
+        value_dict = value.to_dict()
+
+        query = (
+            update(entity)
+            .where(sa.and_(*[col == value_dict[col.name] for col in by]))
+            .values(value_dict)
+        )
+
+        await self.session.execute(query)
 
     async def _insert(self, entity: Type[__T], value: __T) -> __T:
         """Inserts entity to the session.

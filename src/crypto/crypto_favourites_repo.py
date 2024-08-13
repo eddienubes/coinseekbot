@@ -65,7 +65,8 @@ class CryptoFavouritesRepo(PgRepo):
                 # https://docs.sqlalchemy.org/en/20/orm/queryguide/relationships.html#contains-eager
                 contains_eager(CryptoFavourite.asset),
                 joinedload(CryptoFavourite.watch.and_(
-                    tg_chat_uuid == CryptoWatch.tg_chat_uuid
+                    tg_chat_uuid == CryptoWatch.tg_chat_uuid,
+                    CryptoWatch.deleted_at.is_(None)
                 ))
             )
         )

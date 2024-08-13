@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy import Inspector
 
 from container import Container
 from telegram.entities.tg_user import TgUser
@@ -33,6 +34,7 @@ class TestTgUsersRepo:
         )
 
         assert user is not None
+        assert user.chat is not None
 
     async def test_upsert(self, repo: TgUsersRepo):
         user = TgUser.random(first_name='Pupa')

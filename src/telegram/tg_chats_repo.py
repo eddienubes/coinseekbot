@@ -1,3 +1,5 @@
+from aiogram.types import Chat
+
 from postgres import PgRepo, pg_session
 from telegram.entities.tg_chat import TgChat
 from sqlalchemy.dialects.postgresql import insert
