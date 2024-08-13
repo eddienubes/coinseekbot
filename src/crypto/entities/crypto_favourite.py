@@ -20,14 +20,15 @@ class CryptoFavourite(Base):
 
     asset: Mapped['CryptoAsset'] = relationship(
         'CryptoAsset',
-        lazy='joined',
+        lazy='noload',
         # I don't fucking know why, but typing has broken here
         foreign_keys=cast(list[sa.Column], [asset_uuid])
     )
 
     watch: Mapped['CryptoWatch'] = relationship(
-        lazy='joined',
+        'CryptoWatch',
         primaryjoin='CryptoFavourite.asset_uuid == foreign(CryptoWatch.asset_uuid)',
+        lazy='noload',
         uselist=False
     )
 

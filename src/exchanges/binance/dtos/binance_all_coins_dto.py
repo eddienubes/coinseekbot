@@ -1,7 +1,7 @@
 import dataclasses
 
 from dataclasses_json import DataClassJsonMixin
-
+from decimal import Decimal
 from exchanges.binance.dtos.binance_base_dto import BinanceBaseDto
 
 
@@ -19,21 +19,21 @@ class BinanceAllCoinsStatus:
 
 @dataclasses.dataclass
 class BinanceCoinQuoteEntry(DataClassJsonMixin):
-    price: float
-    volume_24h: float
-    volume_change_24h: float
-    percent_change_1h: float
-    percent_change_24h: float
-    percent_change_7d: float
-    percent_change_30d: float
-    percent_change_60d: float
-    percent_change_90d: float
-    market_cap: float
-    market_cap_dominance: float
-    fully_diluted_market_cap: float
+    price: Decimal
+    volume_24h: Decimal
+    volume_change_24h: Decimal
+    percent_change_1h: Decimal
+    percent_change_24h: Decimal
+    percent_change_7d: Decimal
+    percent_change_30d: Decimal
+    percent_change_60d: Decimal
+    percent_change_90d: Decimal
+    market_cap: Decimal
+    fully_diluted_market_cap: Decimal
     last_updated: str
 
-    tvl: float | None = None
+    market_cap_dominance: Decimal | None = None
+    tvl: Decimal | None = None
 
 
 @dataclasses.dataclass
@@ -61,7 +61,7 @@ class BinanceAllCoinsEntry(DataClassJsonMixin):
     quote: BinanceCoinQuote | None = None
 
     max_supply: int | None = None
-    tvl_ratio: float | None = None
+    tvl_ratio: Decimal | None = None
     self_reported_market_cap: int | None = None
     self_reported_circulating_supply: int | None = None
     platform: dict | None = None

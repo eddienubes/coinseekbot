@@ -36,14 +36,15 @@ class CryptoWatch(Base):
 
     asset: Mapped['CryptoAsset'] = relationship(
         'CryptoAsset',
-        lazy='joined',
+        lazy='noload',
         # I don't fucking know why, but typing has broken here
-        foreign_keys=cast(list[sa.Column], [asset_uuid])
+        foreign_keys=cast(list[sa.Column], [asset_uuid]),
+        viewonly=True
     )
 
     tg_chat: Mapped['TgChat'] = relationship(
         'TgChat',
-        lazy='joined',
+        lazy='noload',
         # I don't fucking know why, but typing has broken here
         foreign_keys=cast(list[sa.Column], [tg_chat_uuid])
     )

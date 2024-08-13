@@ -8,7 +8,6 @@ from exchanges.binance import BinanceAssetsQueryApi
 @TelegramBot.router()
 class BotPersonalCommandsRouter:
     def __init__(self):
-        self.tg_bot = TelegramBot()
         self.assets_query_api = BinanceAssetsQueryApi()
 
     @TelegramBot.handle_message(CommandStart())

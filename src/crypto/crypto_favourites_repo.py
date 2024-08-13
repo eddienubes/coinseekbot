@@ -1,4 +1,7 @@
 from sqlalchemy.dialects.postgresql import insert, UUID
+from sqlalchemy.orm import joinedload, contains_eager
+
+from crypto.entities.crypto_asset import CryptoAsset
 from crypto.entities.crypto_favourite import CryptoFavourite
 from crypto.entities.crypto_watch import CryptoWatch
 from postgres import PgRepo, pg_session
@@ -47,10 +50,6 @@ class CryptoFavouritesRepo(PgRepo):
         query = (
             sa.select(CryptoFavourite)
             .join(CryptoFavourite.asset)
-            .outerjoin(
-                CryptoFavourite.watch,
-                tg_chat_uuid == CryptoWatch.tg_chat_uuid
-            )
             .where(
                 sa.and_(
                     tg_user_uuid == CryptoFavourite.tg_user_uuid,
@@ -60,6 +59,15 @@ class CryptoFavouritesRepo(PgRepo):
             .order_by(CryptoFavourite.updated_at.desc())
             .limit(limit)
             .offset(offset)
+            # contains_eagers populates the relationship with data from query
+            # joinedloads populates the relationship and expands join "on" clause
+            .options(
+                # https://docs.sqlalchemy.org/en/20/orm/queryguide/relationships.html#contains-eager
+                contains_eager(CryptoFavourite.asset),
+                joinedload(CryptoFavourite.watch.and_(
+                    tg_chat_uuid == CryptoWatch.tg_chat_uuid
+                ))
+            )
         )
 
         hits = await self.session.scalars(query)

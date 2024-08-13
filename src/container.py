@@ -132,10 +132,12 @@ class Container(metaclass=Singleton):
             tg_service=tg_service
         )
         tg_bot = TelegramBot(
-            middlewares=[engagement_middleware]
+            middlewares=[engagement_middleware],
+            redis=redis_service.redis
         )
 
         instances = [
+            crypto_favourites_repo,
             bot_favourites_router,
             tg_service,
             engagement_middleware,

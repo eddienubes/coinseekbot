@@ -20,8 +20,8 @@ class CryptoAssetQuote(Base):
 
     cmc_last_updated: Mapped[datetime] = mapped_column(sa.TIMESTAMP, nullable=False)
 
-    market_cap_dominance: Mapped[Decimal] = mapped_column(sa.NUMERIC(precision=_PRECISION, scale=_SCALE),
-                                                          nullable=False)
+    market_cap_dominance: Mapped[Decimal | None] = mapped_column(sa.NUMERIC(precision=_PRECISION, scale=_SCALE),
+                                                                 nullable=True)
 
     percent_change_30d: Mapped[Decimal] = mapped_column(sa.NUMERIC(precision=_PRECISION, scale=_SCALE), nullable=False)
     percent_change_1h: Mapped[Decimal] = mapped_column(sa.NUMERIC(precision=_PRECISION, scale=_SCALE), nullable=False)

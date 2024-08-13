@@ -1,17 +1,14 @@
-from aiogram import Bot
-from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.fsm.context import FSMContext
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
 from aiogram.filters import Command
 
 from crypto.crypto_assets_repo import CryptoAssetsRepo
 from crypto.crypto_watches_repo import CryptoWatchesRepo
 from crypto.crypto_favourites_repo import CryptoFavouritesRepo
-from crypto.entities.crypto_watch import CryptoWatch
 from telegram.tg_chats_repo import TgChatsRepo
-from bot.inline.views.callbacks import AddToFavouritesCb
 from telegram.tg_users_repo import TgUsersRepo
-from .views.callbacks import WatchSelectIntervalCb
-from .views.reply_markups import render_watch_select_interval, render_watch_select_text
+from .states import WatchMenuState
 
 from .. import TelegramBot
 
@@ -32,8 +29,13 @@ class BotWatchRouter:
         self.__tg_users_repo = tg_users_repo
 
     @TelegramBot.handle_message(Command('watch'))
-    async def watch(self, message: Message):
-        tg_user = await self.__tg_users_repo.get_by_tg_id(message.from_user.id)
+    async def watch(self, message: Message, state: FSMContext):
+        await state.set_state(WatchMenuState.SHOW_FAVOURITES)
+
+        tg_user = await self.__tg_users_repo.get_by_tg_id_with_chat(
+            tg_user_id=message.from_user.id,
+            tg_chat_id=message.chat.id
+        )
 
         # If there is no user, that means no crypto favourites
         if not tg_user:
@@ -43,13 +45,26 @@ class BotWatchRouter:
             return
 
         favourites = await self.__crypto_favorites_repo.get_by_tg_user_uuid_with_assets(
-            tg_user_uuid=tg_user.uuid
+            tg_user_uuid=tg_user.uuid,
+            tg_chat_uuid=tg_user.chat.uuid
         )
 
-        btns = [[InlineKeyboardButton(
-            text=f'{fav.asset.ticker} - {fav.asset.name}',
-            callback_data='askldfj'
-        )] for fav in favourites.hits]
+        btns = []
+
+        for fav in favourites.hits:
+            if fav.watch:
+                postfix = f'- Watching 👀'
+            else:
+                postfix = ''
+
+            row = [
+                InlineKeyboardButton(
+                    text=f'{fav.asset.name} {postfix}',
+                    callback_data='asdfj'
+                )
+            ]
+
+            btns.append(row)
 
         await message.reply(
             text='Watch command with assets',
