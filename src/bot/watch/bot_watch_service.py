@@ -78,8 +78,8 @@ class BotWatchService:
         await self.__watches_repo.bulk_upsert(watches)
 
     async def lock_notify(self) -> None:
-        # timeout - 300 seconds
-        lock = self.__redis.lock('bot_watch_notify', timeout=300)
+        # timeout - 150 seconds
+        lock = self.__redis.lock('bot_watch_notify', timeout=150)
 
         # Skip if lock is already acquired
         acquired = await lock.acquire(blocking=False)
@@ -99,4 +99,4 @@ class BotWatchService:
         # # Start the job in the next hour
         # start_time = now.replace(hour=now.hour + 1)
 
-        self.__cron.add_job(self.notify, IntervalTrigger(seconds=5))
+        self.__cron.add_job(self.lock_notify, IntervalTrigger(seconds=5))

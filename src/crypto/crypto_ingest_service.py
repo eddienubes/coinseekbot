@@ -144,6 +144,6 @@ class CryptoIngestService:
         now = datetime.now()
 
         # Start the job in the next hour
-        start_time = now.replace(hour=now.hour + 1)
+        start_time = now.replace(hour=now.minute + 15)
 
         self.__cron.add_job(self.ingest_crypto_assets, IntervalTrigger(minutes=15, start_time=start_time))
