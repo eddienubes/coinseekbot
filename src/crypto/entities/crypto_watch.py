@@ -6,6 +6,7 @@ import sqlalchemy as sa
 from marshmallow import validates
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
+from config import config
 from postgres import Base
 
 if TYPE_CHECKING:
@@ -14,9 +15,6 @@ if TYPE_CHECKING:
 
 
 class WatchInterval(Enum):
-    # Only for testing purposes
-    EVERY_10_SECONDS = 'EVERY_10_SECONDS'
-
     EVERY_30_MINUTES = 'EVERY_30_MINUTES'
     EVERY_1_HOUR = 'EVERY_1_HOUR'
     EVERY_3_HOURS = 'EVERY_3_HOURS'
@@ -75,7 +73,7 @@ class CryptoWatch(Base):
         # I don't fucking know why, but typing has broken here
         foreign_keys=cast(list[sa.Column], [tg_chat_uuid])
     )
-   
+
     __table_args__ = (
         sa.UniqueConstraint('asset_uuid', 'tg_chat_uuid'),
     )

@@ -56,7 +56,9 @@ class CryptoFavouritesRepo(PgRepo):
                     CryptoFavourite.status == CryptoFavouriteStatus.ACTIVE
                 )
             )
-            .order_by(CryptoFavourite.updated_at.desc())
+            .order_by(
+                CryptoFavourite.updated_at.desc()
+            )
             .limit(limit)
             .offset(offset)
             # contains_eagers populates the relationship with data from query

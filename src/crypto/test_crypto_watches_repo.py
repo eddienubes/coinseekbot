@@ -78,14 +78,13 @@ class TestCryptoWatchesRepo:
 
         watch = await repo.add(watch)
 
-        hit = await repo.get_with_joins(
-            asset_uuid=watch.asset_uuid,
+        hits = (await repo.get_with_joins_by_chat(
             tg_chat_uuid=watch.tg_chat_uuid
-        )
+        )).hits
 
-        assert hit.interval == WatchInterval.EVERY_DAY
-        assert hit.asset.uuid == asset.uuid
-        assert hit.tg_chat.uuid == tg_chat.uuid
+        assert hits[0].interval == WatchInterval.EVERY_DAY
+        assert hits[0].asset.uuid == asset.uuid
+        assert hits[0].tg_chat.uuid == tg_chat.uuid
 
     async def test_get_watches_to_notify(self, repo: CryptoWatchesRepo):
         asset = CryptoAsset.random()

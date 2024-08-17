@@ -7,6 +7,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 
 from bot import TelegramBot
 from bot.watch.views.views import render_watch_notification_text
+from config import config
 from cron import CronService
 from crypto.crypto_watches_repo import CryptoWatchesRepo
 from crypto.entities.crypto_watch import WatchInterval, CryptoWatch
@@ -15,7 +16,6 @@ from telegram.tg_chats_repo import TgChatsRepo
 from telegram.tg_users_repo import TgUsersRepo
 
 CRYPTO_INTERVAL_TO_TIMEDELTA = {
-    WatchInterval.EVERY_10_SECONDS: timedelta(seconds=1),
     WatchInterval.EVERY_30_MINUTES: timedelta(minutes=30),
     WatchInterval.EVERY_1_HOUR: timedelta(hours=1),
     WatchInterval.EVERY_3_HOURS: timedelta(hours=3),

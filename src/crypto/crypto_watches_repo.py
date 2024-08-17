@@ -8,6 +8,7 @@ from crypto.entities.crypto_asset import CryptoAsset
 from crypto.entities.crypto_watch import CryptoWatch, CryptoWatchStatus
 from postgres import PgRepo, pg_session
 from telegram.entities.tg_chat import TgChat
+from utils import Pageable
 
 
 class CryptoWatchesRepo(PgRepo):
@@ -16,7 +17,13 @@ class CryptoWatchesRepo(PgRepo):
         await self._update(CryptoWatch, by, watch)
 
     @pg_session
-    async def get_with_joins(self, asset_uuid: sa.UUID, tg_chat_uuid: sa.UUID) -> CryptoWatch | None:
+    async def get_with_joins_by_chat(
+            self,
+            tg_chat_uuid: sa.UUID | str,
+            asset_uuids_not_in: list[sa.UUID | str] = None,
+            limit: int = 5,
+            offset: int = 0
+    ) -> Pageable[CryptoWatch]:
         query = (
             select(
                 CryptoWatch
@@ -25,18 +32,45 @@ class CryptoWatchesRepo(PgRepo):
             .join(CryptoWatch.tg_chat)
             .where(
                 sa.and_(
-                    asset_uuid == CryptoWatch.asset_uuid,
                     tg_chat_uuid == CryptoWatch.tg_chat_uuid
                 )
-            ).options(
+            )
+            .order_by(
+                CryptoWatch.status.desc(),
+                CryptoWatch.updated_at.desc()
+            )
+            .limit(limit)
+            .offset(offset)
+            .options(
                 contains_eager(CryptoWatch.asset),
                 contains_eager(CryptoWatch.tg_chat)
             )
         )
 
-        raw_hit = await self.session.scalar(query)
+        count_query = (
+            sa.select(sa.func.count(CryptoWatch.uuid))
+            .join(CryptoWatch.asset)
+            .join(CryptoWatch.tg_chat)
+            .where(
+                sa.and_(
+                    tg_chat_uuid == CryptoWatch.tg_chat_uuid
+                )
+            )
+        )
 
-        return raw_hit
+        if asset_uuids_not_in:
+            query = query.where(CryptoWatch.asset_uuid.notin_(asset_uuids_not_in))
+            count_query = count_query.where(CryptoWatch.asset_uuid.notin_(asset_uuids_not_in))
+
+        hits = await self.session.scalars(query)
+        total = await self.session.scalar(count_query)
+
+        return Pageable(
+            hits=list(hits.all()),
+            total=total,
+            limit=limit,
+            offset=offset
+        )
 
     @pg_session
     async def upsert(self, watch: CryptoWatch) -> CryptoWatch:

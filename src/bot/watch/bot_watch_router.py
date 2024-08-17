@@ -1,3 +1,5 @@
+from typing import Any
+
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 from aiogram.filters import Command
@@ -5,13 +7,15 @@ from aiogram.filters import Command
 from crypto.crypto_assets_repo import CryptoAssetsRepo
 from crypto.crypto_watches_repo import CryptoWatchesRepo
 from crypto.crypto_favourites_repo import CryptoFavouritesRepo
+from crypto.entities.crypto_favourite import CryptoFavourite
 from crypto.entities.crypto_watch import CryptoWatch, WatchInterval, CryptoWatchStatus
 from telegram.entities.tg_chat import TgChat
 from telegram.tg_chats_repo import TgChatsRepo
 from telegram.tg_users_repo import TgUsersRepo
+from utils import Pageable
 from .bot_watch_service import BotWatchService
 from .views.callbacks import WatchSelectIntervalCb, StopWatchingCb, StopWatchingConfirmationCb, StartWatchingCb, \
-    WatchListFavouritesCb
+    WatchlistFavouritesCb, WatchlistPageCb
 from .views.views import render_watch_select_text, render_start_watching_list, \
     render_favourite_list_text, render_favourites_list, \
     render_stop_watching_confirm_text, render_stop_watching_confirm_reply_markup
@@ -53,7 +57,7 @@ class BotWatchRouter:
             )
             return
 
-        favourites = await self.__crypto_favorites_repo.get_by_tg_user_uuid_with_assets(
+        favourites = await self.get_watchlist(
             tg_user_uuid=tg_user.uuid,
             tg_chat_uuid=tg_user.chat.uuid
         )
@@ -62,12 +66,12 @@ class BotWatchRouter:
             text=render_favourite_list_text(),
             reply_markup=render_favourites_list(
                 tg_user_id=message.from_user.id,
-                favourites=favourites
+                watchlist=favourites
             )
         )
 
-    @TelegramBot.handle_callback_query(WatchListFavouritesCb.filter())
-    async def watch_list_favourites_cb(self, query: CallbackQuery, callback_data: WatchListFavouritesCb):
+    @TelegramBot.handle_callback_query(WatchlistFavouritesCb.filter())
+    async def watch_list_favourites_cb(self, query: CallbackQuery, callback_data: WatchlistFavouritesCb):
         if query.from_user.id != callback_data.tg_user_id:
             return
 
@@ -76,7 +80,7 @@ class BotWatchRouter:
             tg_chat_id=query.message.chat.id
         )
 
-        favourites = await self.__crypto_favorites_repo.get_by_tg_user_uuid_with_assets(
+        watchlist = await self.get_watchlist(
             tg_user_uuid=tg_user.uuid,
             tg_chat_uuid=tg_user.chat.uuid
         )
@@ -85,7 +89,7 @@ class BotWatchRouter:
             text=render_favourite_list_text(),
             reply_markup=render_favourites_list(
                 tg_user_id=query.from_user.id,
-                favourites=favourites
+                watchlist=watchlist
             )
         )
 
@@ -127,7 +131,7 @@ class BotWatchRouter:
             )
         )
 
-        favourites = await self.__crypto_favorites_repo.get_by_tg_user_uuid_with_assets(
+        watchlist = await self.get_watchlist(
             tg_user_uuid=tg_user.uuid,
             tg_chat_uuid=tg_user.chat.uuid
         )
@@ -136,7 +140,7 @@ class BotWatchRouter:
             text=render_favourite_list_text(),
             reply_markup=render_favourites_list(
                 tg_user_id=query.from_user.id,
-                favourites=favourites
+                watchlist=watchlist
             )
         )
 
@@ -178,7 +182,7 @@ class BotWatchRouter:
 
         await self.__crypto_watches_repo.update(watch, [CryptoWatch.asset_uuid, CryptoWatch.tg_chat_uuid])
 
-        favourites = await self.__crypto_favorites_repo.get_by_tg_user_uuid_with_assets(
+        watchlist = await self.get_watchlist(
             tg_user_uuid=tg_user.uuid,
             tg_chat_uuid=tg_user.chat.uuid
         )
@@ -187,8 +191,77 @@ class BotWatchRouter:
             text=render_favourite_list_text(),
             reply_markup=render_favourites_list(
                 tg_user_id=tg_user.tg_id,
-                favourites=favourites
+                watchlist=watchlist
             )
         )
 
         await query.answer('Stopped watching.')
+
+    @TelegramBot.handle_callback_query(WatchlistPageCb.filter())
+    async def watchlist(self, query: CallbackQuery, callback_data: WatchlistPageCb):
+        if query.from_user.id != callback_data.tg_user_id:
+            return
+
+        tg_user = await self.__tg_users_repo.get_by_tg_id_with_chat(
+            tg_user_id=query.from_user.id,
+            tg_chat_id=query.message.chat.id
+        )
+
+        watchlist = await self.get_watchlist(
+            tg_user_uuid=tg_user.uuid,
+            tg_chat_uuid=tg_user.chat.uuid,
+            offset=callback_data.offset
+        )
+
+        await query.message.edit_text(
+            text=render_favourite_list_text(),
+            reply_markup=render_favourites_list(
+                tg_user_id=tg_user.tg_id,
+                watchlist=watchlist
+            )
+        )
+
+    async def get_watchlist(self,
+                            tg_user_uuid: uuid.UUID,
+                            tg_chat_uuid: uuid.UUID,
+                            offset: int = 0,
+                            limit: int = 5
+                            ) -> Pageable[CryptoWatch | CryptoFavourite]:
+
+        favourites = await self.__crypto_favorites_repo.get_by_tg_user_uuid_with_assets(
+            tg_user_uuid=tg_user_uuid,
+            tg_chat_uuid=tg_chat_uuid,
+            offset=offset,
+            limit=limit
+        )
+
+        offset_left = max(offset - (favourites.total - len(favourites.hits)), 0)
+        limit_left = max(limit - len(favourites.hits), 0)
+
+        watches = await self.__crypto_watches_repo.get_with_joins_by_chat(
+            tg_chat_uuid=tg_chat_uuid,
+            offset=offset_left,
+            asset_uuids_not_in=[f.asset_uuid for f in favourites.hits],
+            limit=limit_left
+        )
+
+        hits = [*favourites.hits, *watches.hits]
+
+        def _(x: CryptoWatch | CryptoFavourite):
+            if isinstance(x, CryptoWatch) and x.status == CryptoWatchStatus.ACTIVE:
+                print('pushed watch to front', x.asset.name)
+                return 1, x.updated_at
+            if isinstance(x, CryptoFavourite) and x.watch and x.watch.status == CryptoWatchStatus.ACTIVE:
+                print('pushed fav to front', x.asset.name)
+                return 1, x.updated_at
+            # 0 - primary sort key, x.updated_at or False (to keep order)- secondary sort key
+            return 0, False
+
+        hits = sorted(hits, key=lambda x: _(x), reverse=True)
+
+        return Pageable(
+            hits=hits,
+            total=favourites.total + watches.total,
+            limit=limit,
+            offset=offset
+        )

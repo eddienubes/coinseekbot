@@ -3,18 +3,17 @@ import inspect
 
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
+from config import config
 from crypto.entities.crypto_asset import CryptoAsset
 from crypto.entities.crypto_asset_quote import CryptoAssetQuote
 from crypto.entities.crypto_favourite import CryptoFavourite
-from crypto.entities.crypto_watch import WatchInterval, CryptoWatch
+from crypto.entities.crypto_watch import WatchInterval, CryptoWatch, CryptoWatchStatus
 from utils import Pageable
 from .callbacks import WatchSelectIntervalCb, StartWatchingCb, StopWatchingCb, StopWatchingConfirmationCb, \
-    WatchListFavouritesCb
+    WatchlistFavouritesCb, WatchlistPageCb
+from ...callbacks import DummyCb
 
 WATCH_INTERVALS_TEXT = {
-    # Only for testing purposes
-    WatchInterval.EVERY_10_SECONDS: '10 seconds',
-
     WatchInterval.EVERY_30_MINUTES: '30 minutes',
     WatchInterval.EVERY_1_HOUR: '1 hours',
     WatchInterval.EVERY_3_HOURS: '3 hours',
@@ -72,36 +71,85 @@ async def render_start_watching_list(
 
 def render_favourites_list(
         tg_user_id: int,
-        favourites: Pageable[CryptoFavourite]
+        watchlist: Pageable[CryptoWatch | CryptoFavourite]
 ) -> InlineKeyboardMarkup:
     btns = []
 
-    for fav in favourites.hits:
-        if fav.watch:
-            postfix = f'- Watching 👀'
+    for item in watchlist.hits:
+        is_watch = isinstance(item, CryptoWatch)
+
+        if is_watch:
+            watch = item
+        else:
+            watch = item.watch
+
+        # Watch might not be defined, if it's of a favourite asset
+        if watch and watch.status == CryptoWatchStatus.ACTIVE:
+            postfix = f'💫 - Watching 👀' if not is_watch else ' - Watching 👀'
             cb_data = StopWatchingConfirmationCb(
                 tg_user_id=tg_user_id,
-                asset_uuid=str(fav.asset_uuid)
+                asset_uuid=str(item.asset_uuid)
             ).pack()
         else:
             cb_data = WatchSelectIntervalCb(
-                asset_uuid=str(fav.asset_uuid),
+                asset_uuid=str(item.asset_uuid),
                 tg_user_id=tg_user_id
             ).pack()
-            postfix = ''
+            postfix = '💫' if not is_watch else ''
 
         row = [
             InlineKeyboardButton(
-                text=f'{fav.asset.name} {postfix}',
+                text=f'{item.asset.name} {postfix}',
                 callback_data=cb_data
             )
         ]
 
         btns.append(row)
 
+    print('has_previous_page', watchlist.has_previous_page())
+    print('has_next_page', watchlist.has_next_page())
+    print('is_pageable', watchlist.is_pageable())
+    print('get_current_page', watchlist.get_current_page())
+    print('get_total_pages', watchlist.get_total_pages())
+    print('get_next_offset', watchlist.get_next_offset())
+    print('get_previous_offset', watchlist.get_previous_offset())
+
+    if not watchlist.is_pageable():
+        return InlineKeyboardMarkup(
+            inline_keyboard=[
+                *btns
+            ]
+        )
+
+    last_row = [
+        InlineKeyboardButton(
+            text=f'{watchlist.get_current_page()}/{watchlist.get_total_pages()}',
+            callback_data=DummyCb().pack()
+        )
+    ]
+
+    if watchlist.has_previous_page():
+        last_row.insert(0, InlineKeyboardButton(
+            text='⬅️',
+            callback_data=WatchlistPageCb(
+                tg_user_id=tg_user_id,
+                offset=watchlist.get_previous_offset()
+            ).pack()
+        ))
+
+    if watchlist.has_next_page():
+        last_row.append(InlineKeyboardButton(
+            text='➡️',
+            callback_data=WatchlistPageCb(
+                tg_user_id=tg_user_id,
+                offset=watchlist.get_next_offset()
+            ).pack()
+        ))
+
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            *btns
+            *btns,
+            last_row
         ]
     )
 
@@ -136,7 +184,7 @@ def render_stop_watching_confirm_reply_markup(
                 ),
                 InlineKeyboardButton(
                     text='Nope, not yet',
-                    callback_data=WatchListFavouritesCb(
+                    callback_data=WatchlistFavouritesCb(
                         tg_user_id=tg_user_id
                     ).pack()
                 )

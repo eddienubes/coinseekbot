@@ -3,8 +3,13 @@ from aiogram.filters.callback_data import CallbackData
 from bot.callbacks import RedisCb
 
 
-class WatchListFavouritesCb(CallbackData, prefix='WLFCb'):
+class WatchlistFavouritesCb(CallbackData, prefix='WLFCb'):
     tg_user_id: int
+
+
+class WatchlistPageCb(CallbackData, prefix='WLPCb'):
+    tg_user_id: int
+    offset: int
 
 
 class WatchSelectIntervalCb(CallbackData, prefix='WFSb'):
