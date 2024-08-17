@@ -21,20 +21,22 @@ class S3Service:
         return file_path
 
     async def on_module_init(self):
-        session = aioboto3.Session(
-            aws_access_key_id=config.s3_access_key_id,
-            aws_secret_access_key=config.s3_access_secret_key,
-        )
-
-        # noinspection PyTypeChecker
-        resource = await self.__ctx.enter_async_context(
-            session.resource(
-                's3',
-                endpoint_url=config.s3_endpoint_url,
-            )
-        )
-
-        self.__s3 = await resource.Bucket(self.__bucket_name)
+        pass
+        # session = aioboto3.Session(
+        #     aws_access_key_id=config.s3_access_key_id,
+        #     aws_secret_access_key=config.s3_access_secret_key,
+        # )
+        # 
+        # # noinspection PyTypeChecker
+        # resource = await self.__ctx.enter_async_context(
+        #     session.resource(
+        #         's3',
+        #         endpoint_url=config.s3_endpoint_url,
+        #     )
+        # )
+        # 
+        # self.__s3 = await resource.Bucket(self.__bucket_name)
 
     async def on_module_destroy(self):
-        await self.__ctx.aclose()
+        pass
+        # await self.__ctx.aclose()
