@@ -47,35 +47,46 @@ class BotWatchService:
         self.__logger.info('notify: started')
 
         watches = await self.__watches_repo.get_watches_to_notify()
+        chats_to_send = dict[int, list[CryptoWatch]]()
+        watches_to_upsert: list[CryptoWatch] = []
+
+        for w in watches:
+            next_execution_at = datetime.now() + CRYPTO_INTERVAL_TO_TIMEDELTA[w.interval]
+            if not w.next_execution_at:
+                w.next_execution_at = next_execution_at
+                watches_to_upsert.append(w)
+                continue
+
+            w.next_execution_at = next_execution_at
+
+            if w.tg_chat.tg_id not in chats_to_send:
+                chats_to_send[w.tg_chat.tg_id] = []
+
+            chats_to_send[w.tg_chat.tg_id].append(w)
 
         async with asyncio.TaskGroup() as tg:
-            for watch in watches:
+            for chat_id, chat_watches in chats_to_send.items():
                 self.__logger.info(
-                    f'notify: processing watch interval {watch.interval}, tg_chat_id: {watch.tg_chat.tg_id}, asset_name: {watch.asset.name}')
+                    f'notify: processing chat_id: {chat_id}, number of watches: {len(chat_watches)}')
 
-                if watch.next_execution_at is None:
-                    watch.next_execution_at = datetime.now() + CRYPTO_INTERVAL_TO_TIMEDELTA[watch.interval]
-                    continue
-
-                async def _(w: CryptoWatch):
+                async def _(cws: list[CryptoWatch]):
                     try:
-                        self.__logger.info(
-                            f'notify: sending notification for watch interval {w.interval}, asset_name: {w.asset.name}')
+                        self.__logger.info(f'notify: sending notification to {chat_id}, watches: {len(cws)}')
+                        # print(render_watch_notification_text(cws))
                         await self.__tg_bot.bot.send_message(
-                            chat_id=watch.tg_chat.tg_id,
-                            text=render_watch_notification_text(watch, watch.asset, watch.asset.latest_quote)
+                            chat_id=chat_id,
+                            text=render_watch_notification_text(cws),
+                            disable_web_page_preview=True
                         )
-                        w.next_execution_at = datetime.now() + CRYPTO_INTERVAL_TO_TIMEDELTA[w.interval]
-                        self.__logger.info(
-                            f'notify: sent notification for watch interval {w.interval}, asset_name: {w.asset.name}'
-                        )
+                        self.__logger.info(f'notify: sent notification to {chat_id}, watches: {len(cws)} successfully')
                     except Exception as e:
                         self.__logger.error(
-                            f'Failed to send notification for a watch interval: {w.interval}, asset name: {w.asset.name} error: {e}'
+                            f'Failed to send notification for to chat_id: {chat_id}, watches: {len(cws)}: {e}'
                         )
 
-                tg.create_task(_(watch))
-        await self.__watches_repo.bulk_upsert(watches)
+                tg.create_task(_(chat_watches))
+
+        await self.__watches_repo.bulk_upsert(watches_to_upsert)
 
     async def lock_notify(self) -> None:
         # timeout - 150 seconds

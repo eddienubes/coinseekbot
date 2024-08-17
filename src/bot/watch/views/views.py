@@ -145,27 +145,34 @@ def render_stop_watching_confirm_reply_markup(
     )
 
 
-def render_watch_notification_text(
-        watch: CryptoWatch,
-        asset: CryptoAsset,
-        latest_quote: CryptoAssetQuote
-) -> str:
-    change_1h = round(latest_quote.percent_change_1h, 2)
-    change_24h = round(latest_quote.percent_change_24h, 2)
-    change_7d = round(latest_quote.percent_change_7d, 2)
+def render_watch_notification_text(watches: list[CryptoWatch]) -> str:
+    body = ''
 
-    indicator_1h = '📉' if change_1h < 0 else '📈'
-    indicator_24h = '📉' if change_24h < 0 else '📈'
-    indicator_7d = '📉' if change_7d < 0 else '📈'
+    for watch in watches:
+        latest_quote = watch.asset.latest_quote
+        asset = watch.asset
+
+        change_1h = float(round(latest_quote.percent_change_1h, 2))
+        change_24h = float(round(latest_quote.percent_change_24h, 2))
+        change_7d = float(round(latest_quote.percent_change_7d, 2))
+
+        change_1h_str = f'<b>+{change_1h}%</b>' if change_1h > 0 else change_1h
+        change_24h_str = f'<b>+{change_24h}%</b>' if change_24h > 0 else change_24h
+        change_7d_str = f'<b>+{change_7d}%</b>' if change_7d > 0 else change_7d
+
+        indicator_1h = '📉' if change_1h < 0 else '📈'
+        indicator_24h = '📉' if change_24h < 0 else '📈'
+        indicator_7d = '📉' if change_7d < 0 else '📈'
+
+        body += inspect.cleandoc(f"""
+            <blockquote expandable><a href="https://coinmarketcap.com/currencies/{asset.name.replace(' ', '').lower()}">{asset.name}</a>
+            {indicator_1h} {change_1h_str} in 1h
+            {indicator_24h} {change_24h_str} in 24h
+            {indicator_7d} {change_7d_str} in 7d
+            </blockquote>\n
+        """)
 
     return inspect.cleandoc(f"""
-        <b>{asset.ticker}</b> - <code>{asset.name}</code>: Notification
-        every <b>{WATCH_INTERVALS_TEXT[watch.interval]}</b>
-
-        <blockquote>
-        {indicator_1h} {change_1h}% in 24h
-        {indicator_24h} {change_24h}% in 24h
-        {indicator_7d} {change_7d}% in 7d
-
-        </blockquote>
+        👀 Your watchlist:
+        {body}
     """)

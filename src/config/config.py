@@ -13,6 +13,7 @@ class Config(BaseSettings):
     #
     env: str
     log_level: str
+    seed_crypto_enabled: bool
 
     #
     # Bot

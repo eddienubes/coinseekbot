@@ -1,4 +1,5 @@
 import dataclasses
+import functools
 import logging
 from collections.abc import Callable
 
@@ -21,6 +22,7 @@ class CronService:
         self.__logger = logging.getLogger(self.__class__.__name__)
 
     def add_job(self, fn: Callable, trigger: Trigger) -> None:
+        @functools.wraps(fn)
         async def _():
             try:
                 await fn()

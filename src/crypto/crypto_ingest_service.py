@@ -17,6 +17,7 @@ from exchanges.binance import BinanceUiApi
 from exchanges.binance.dtos.binance_all_coins_dto import BinanceCoinQuoteEntry
 from postgres import pg_session
 from redis_client import RedisService
+from utils import dispatch
 
 
 class CryptoIngestService:
@@ -206,11 +207,14 @@ class CryptoIngestService:
 
     async def on_module_init(self) -> None:
         # Start the job in the next hour
-        if config.env == 'test':
+        if config.env == 'test' or not config.seed_crypto_enabled:
             return
 
-        await self.lock_ingest_crypto_assets()
-        await self.lock_ingest_crypto_asset_quotes()
+        async def _():
+            await self.lock_ingest_crypto_assets()
+            await self.lock_ingest_crypto_asset_quotes()
+
+        dispatch(_())
 
         start_time = datetime.now() + timedelta(hours=24)
         self.__cron.add_job(self.lock_ingest_crypto_assets, IntervalTrigger(hours=24, start_time=start_time))
