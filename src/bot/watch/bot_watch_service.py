@@ -96,7 +96,4 @@ class BotWatchService:
     async def on_module_init(self):
         now = datetime.now()
 
-        # # Start the job in the next hour
-        # start_time = now.replace(hour=now.hour + 1)
-
         self.__cron.add_job(self.lock_notify, IntervalTrigger(seconds=5))
