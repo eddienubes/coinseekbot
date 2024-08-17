@@ -4,13 +4,17 @@ import inspect
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from crypto.entities.crypto_asset import CryptoAsset
+from crypto.entities.crypto_asset_quote import CryptoAssetQuote
 from crypto.entities.crypto_favourite import CryptoFavourite
-from crypto.entities.crypto_watch import WatchInterval
+from crypto.entities.crypto_watch import WatchInterval, CryptoWatch
 from utils import Pageable
 from .callbacks import WatchSelectIntervalCb, StartWatchingCb, StopWatchingCb, StopWatchingConfirmationCb, \
     WatchListFavouritesCb
 
 WATCH_INTERVALS_TEXT = {
+    # Only for testing purposes
+    WatchInterval.EVERY_10_SECONDS: '10 seconds',
+
     WatchInterval.EVERY_30_MINUTES: '30 minutes',
     WatchInterval.EVERY_1_HOUR: '1 hours',
     WatchInterval.EVERY_3_HOURS: '3 hours',
@@ -139,3 +143,29 @@ def render_stop_watching_confirm_reply_markup(
             ]
         ]
     )
+
+
+def render_watch_notification_text(
+        watch: CryptoWatch,
+        asset: CryptoAsset,
+        latest_quote: CryptoAssetQuote
+) -> str:
+    change_1h = round(latest_quote.percent_change_1h, 2)
+    change_24h = round(latest_quote.percent_change_24h, 2)
+    change_7d = round(latest_quote.percent_change_7d, 2)
+
+    indicator_1h = '📉' if change_1h < 0 else '📈'
+    indicator_24h = '📉' if change_24h < 0 else '📈'
+    indicator_7d = '📉' if change_7d < 0 else '📈'
+
+    return inspect.cleandoc(f"""
+        <b>{asset.ticker}</b> - <code>{asset.name}</code>: Notification
+        every <b>{WATCH_INTERVALS_TEXT[watch.interval]}</b>
+
+        <blockquote>
+        {indicator_1h} {change_1h}% in 24h
+        {indicator_24h} {change_24h}% in 24h
+        {indicator_7d} {change_7d}% in 7d
+
+        </blockquote>
+    """)

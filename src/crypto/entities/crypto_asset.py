@@ -22,7 +22,7 @@ class CryptoAsset(Base):
     name: Mapped[str] = mapped_column(sa.String, unique=False, nullable=False, index=True)
     slug: Mapped[str] = mapped_column(sa.String, unique=False, nullable=False, index=True)
 
-    cmc_date_added: Mapped[datetime] = mapped_column(sa.TIMESTAMP, nullable=False)
+    cmc_date_added: Mapped[datetime] = mapped_column(sa.TIMESTAMP(timezone=True), nullable=False)
     num_market_pairs: Mapped[int] = mapped_column(sa.Integer, nullable=False)
     infinite_supply: Mapped[bool] = mapped_column(sa.Boolean, nullable=False, default=False)
     max_supply: Mapped[str | None] = mapped_column(sa.String, nullable=True)

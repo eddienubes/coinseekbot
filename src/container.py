@@ -108,12 +108,28 @@ class Container(metaclass=Singleton):
         bot_chat_router = BotChatRouter(
             chats_repo=tg_chats_repo
         )
+
+        tg_service = TgService(
+            tg_users_repo=tg_users_repo,
+            tg_chats_repo=tg_chats_repo,
+            tg_chats_to_users_repo=tg_chats_to_users_repo
+        )
+        engagement_middleware = EngagementMiddleware(
+            tg_service=tg_service
+        )
+
+        tg_bot = TelegramBot(
+            middlewares=[engagement_middleware],
+            redis=redis_service.redis
+        )
+
         bot_watch_service = BotWatchService(
-            chats_repo=tg_chats_repo,
-            assets_repo=crypto_asset_repo,
-            crypto_watches_repo=crypto_watches_repo,
-            crypto_favourites_repo=crypto_favourites_repo,
-            tg_users_repo=tg_users_repo
+            tg_chats_repo=tg_chats_repo,
+            tg_users_repo=tg_users_repo,
+            watches_repo=crypto_watches_repo,
+            tg_bot=tg_bot,
+            cron=cron_service,
+            redis=redis_service
         )
         bot_watch_router = BotWatchRouter(
             chats_repo=tg_chats_repo,
@@ -131,21 +147,8 @@ class Container(metaclass=Singleton):
             tg_users_repo=tg_users_repo
         )
 
-        tg_service = TgService(
-            tg_users_repo=tg_users_repo,
-            tg_chats_repo=tg_chats_repo,
-            tg_chats_to_users_repo=tg_chats_to_users_repo
-        )
-
-        engagement_middleware = EngagementMiddleware(
-            tg_service=tg_service
-        )
-        tg_bot = TelegramBot(
-            middlewares=[engagement_middleware],
-            redis=redis_service.redis
-        )
-
         instances = [
+            bot_watch_service,
             crypto_favourites_repo,
             bot_favourites_router,
             tg_service,

@@ -2,7 +2,7 @@ import asyncio
 import itertools
 import logging
 import random
-from datetime import datetime
+from datetime import datetime, UTC
 
 from dateutil import parser as date_parser
 from apscheduler.triggers.interval import IntervalTrigger
@@ -19,8 +19,12 @@ from redis_client import RedisService
 
 
 class CryptoIngestService:
-    def __init__(self, crypto_repo: CryptoAssetsRepo, binance_ui_api: BinanceUiApi, cron: CronService,
-                 redis: RedisService):
+    def __init__(self,
+                 crypto_repo: CryptoAssetsRepo,
+                 binance_ui_api: BinanceUiApi,
+                 cron: CronService,
+                 redis: RedisService
+                 ):
         self.__crypto_repo = crypto_repo
         self.__binance_ui_api = binance_ui_api
         self.__cron = cron

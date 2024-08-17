@@ -18,7 +18,7 @@ class CryptoAssetQuote(Base):
 
     asset_uuid: Mapped[sa.UUID] = mapped_column(sa.ForeignKey('crypto_assets.uuid'), index=True, nullable=False)
 
-    cmc_last_updated: Mapped[datetime] = mapped_column(sa.TIMESTAMP, nullable=False)
+    cmc_last_updated: Mapped[datetime] = mapped_column(sa.TIMESTAMP(timezone=True), nullable=False)
 
     market_cap_dominance: Mapped[Decimal | None] = mapped_column(sa.NUMERIC(precision=_PRECISION, scale=_SCALE),
                                                                  nullable=True)

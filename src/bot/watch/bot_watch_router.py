@@ -122,7 +122,8 @@ class BotWatchRouter:
                 asset_uuid=asset.uuid,
                 tg_chat_uuid=tg_user.chat.uuid,
                 interval=WatchInterval(callback_data.interval),
-                status=CryptoWatchStatus.ACTIVE
+                status=CryptoWatchStatus.ACTIVE,
+                next_execution_at=None
             )
         )
 

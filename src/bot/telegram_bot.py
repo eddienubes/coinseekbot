@@ -27,6 +27,7 @@ class TelegramBot:
                 redis=redis
             )
         )
+        self.bot = Bot(token=config.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
         if middlewares is not None:
             for m in middlewares:
@@ -130,6 +131,4 @@ class TelegramBot:
     async def start(self, **kwargs) -> None:
         self._register_handlers()
 
-        bot = Bot(token=config.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-
-        await self.__dp.start_polling(bot, **kwargs)
+        await self.__dp.start_polling(self.bot, **kwargs)

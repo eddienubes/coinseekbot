@@ -6,7 +6,7 @@ from redis.asyncio.lock import Lock
 class RedisService:
     def __init__(self):
         self.redis = Redis(host=config.redis_host, port=config.redis_port, decode_responses=True)
-
+    
     async def get(self, key: str) -> str | None:
         return await self.redis.get(self.__get_key(key))
 

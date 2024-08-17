@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: edb4ca6af0d6
+Revision ID: a94ab697a427
 Revises: 
-Create Date: 2024-08-17 09:52:30.490126
+Create Date: 2024-08-17 13:13:16.080731
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'edb4ca6af0d6'
+revision: str = 'a94ab697a427'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,9 +26,9 @@ def upgrade() -> None:
     sa.Column('ticker', sa.String(), nullable=False),
     sa.Column('logo_s3_key', sa.String(), nullable=False),
     sa.Column('seq_num', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('deleted_at', sa.TIMESTAMP(), nullable=True),
+    sa.Column('created_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.TIMESTAMP(timezone=True), nullable=True),
     sa.PrimaryKeyConstraint('uuid'),
     sa.UniqueConstraint('ticker')
     )
@@ -36,9 +36,9 @@ def upgrade() -> None:
     op.create_table('crypto_asset_tags',
     sa.Column('uuid', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
-    sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('deleted_at', sa.TIMESTAMP(), nullable=True),
+    sa.Column('created_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.TIMESTAMP(timezone=True), nullable=True),
     sa.PrimaryKeyConstraint('uuid'),
     sa.UniqueConstraint('name')
     )
@@ -47,14 +47,14 @@ def upgrade() -> None:
     sa.Column('ticker', sa.String(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('slug', sa.String(), nullable=False),
-    sa.Column('cmc_date_added', sa.TIMESTAMP(), nullable=False),
+    sa.Column('cmc_date_added', sa.TIMESTAMP(timezone=True), nullable=False),
     sa.Column('num_market_pairs', sa.Integer(), nullable=False),
     sa.Column('infinite_supply', sa.Boolean(), nullable=False),
     sa.Column('max_supply', sa.String(), nullable=True),
     sa.Column('cmc_id', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('deleted_at', sa.TIMESTAMP(), nullable=True),
+    sa.Column('created_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.TIMESTAMP(timezone=True), nullable=True),
     sa.PrimaryKeyConstraint('uuid'),
     sa.UniqueConstraint('cmc_id')
     )
@@ -74,9 +74,9 @@ def upgrade() -> None:
     sa.Column('join_by_request', sa.Boolean(), server_default=sa.text('false'), nullable=False),
     sa.Column('invite_link', sa.String(), nullable=True),
     sa.Column('is_removed', sa.Boolean(), server_default=sa.text('false'), nullable=False),
-    sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('deleted_at', sa.TIMESTAMP(), nullable=True),
+    sa.Column('created_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.TIMESTAMP(timezone=True), nullable=True),
     sa.PrimaryKeyConstraint('uuid'),
     sa.UniqueConstraint('tg_id')
     )
@@ -92,9 +92,9 @@ def upgrade() -> None:
     sa.Column('language_code', sa.String(), nullable=True),
     sa.Column('is_premium', sa.Boolean(), server_default=sa.text('false'), nullable=False),
     sa.Column('added_to_attachment_menu', sa.Boolean(), server_default=sa.text('false'), nullable=False),
-    sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('deleted_at', sa.TIMESTAMP(), nullable=True),
+    sa.Column('created_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.TIMESTAMP(timezone=True), nullable=True),
     sa.PrimaryKeyConstraint('uuid'),
     sa.UniqueConstraint('tg_id')
     )
@@ -114,9 +114,9 @@ def upgrade() -> None:
     sa.Column('cancel_replace_allowed', sa.Boolean(), nullable=False),
     sa.Column('is_spot_trading_allowed', sa.Boolean(), nullable=False),
     sa.Column('is_margin_trading_allowed', sa.Boolean(), nullable=False),
-    sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('deleted_at', sa.TIMESTAMP(), nullable=True),
+    sa.Column('created_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.TIMESTAMP(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['base_asset_uuid'], ['binance_crypto_assets.uuid'], ),
     sa.ForeignKeyConstraint(['quote_asset_uuid'], ['binance_crypto_assets.uuid'], ),
     sa.PrimaryKeyConstraint('uuid'),
@@ -127,7 +127,7 @@ def upgrade() -> None:
     op.create_table('crypto_asset_quotes',
     sa.Column('id', sa.Integer(), sa.Identity(always=False), nullable=False),
     sa.Column('asset_uuid', sa.UUID(), nullable=False),
-    sa.Column('cmc_last_updated', sa.TIMESTAMP(), nullable=False),
+    sa.Column('cmc_last_updated', sa.TIMESTAMP(timezone=True), nullable=False),
     sa.Column('market_cap_dominance', sa.NUMERIC(precision=30, scale=11), nullable=True),
     sa.Column('percent_change_30d', sa.NUMERIC(precision=30, scale=11), nullable=False),
     sa.Column('percent_change_1h', sa.NUMERIC(precision=30, scale=11), nullable=False),
@@ -139,9 +139,9 @@ def upgrade() -> None:
     sa.Column('volume_change_24h', sa.NUMERIC(precision=30, scale=11), nullable=False),
     sa.Column('volume_24h', sa.NUMERIC(precision=30, scale=11), nullable=False),
     sa.Column('price', sa.NUMERIC(precision=30, scale=11), nullable=False),
-    sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('deleted_at', sa.TIMESTAMP(), nullable=True),
+    sa.Column('created_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.TIMESTAMP(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['asset_uuid'], ['crypto_assets.uuid'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -149,9 +149,9 @@ def upgrade() -> None:
     op.create_table('crypto_assets_to_asset_tags',
     sa.Column('asset_uuid', sa.UUID(), nullable=False),
     sa.Column('tag_uuid', sa.UUID(), nullable=False),
-    sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('deleted_at', sa.TIMESTAMP(), nullable=True),
+    sa.Column('created_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.TIMESTAMP(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['asset_uuid'], ['crypto_assets.uuid'], ),
     sa.ForeignKeyConstraint(['tag_uuid'], ['crypto_asset_tags.uuid'], ),
     sa.PrimaryKeyConstraint('asset_uuid', 'tag_uuid')
@@ -160,12 +160,12 @@ def upgrade() -> None:
     sa.Column('uuid', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
     sa.Column('asset_uuid', sa.UUID(), nullable=False),
     sa.Column('tg_chat_uuid', sa.UUID(), nullable=False),
-    sa.Column('interval', sa.Enum('EVERY_30_MINUTES', 'EVERY_1_HOUR', 'EVERY_3_HOURS', 'EVERY_6_HOURS', 'EVERY_12_HOURS', 'EVERY_DAY', name='watchinterval', native_enum=False, length=None), nullable=False),
+    sa.Column('interval', sa.Enum('EVERY_10_SECONDS', 'EVERY_30_MINUTES', 'EVERY_1_HOUR', 'EVERY_3_HOURS', 'EVERY_6_HOURS', 'EVERY_12_HOURS', 'EVERY_DAY', name='watchinterval', native_enum=False, length=None), nullable=False),
     sa.Column('status', sa.Enum('ACTIVE', 'INACTIVE', name='cryptowatchstatus', native_enum=False, length=None), nullable=False),
-    sa.Column('next_execution_at', sa.TIMESTAMP(), nullable=True),
-    sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('deleted_at', sa.TIMESTAMP(), nullable=True),
+    sa.Column('next_execution_at', sa.TIMESTAMP(timezone=True), nullable=True),
+    sa.Column('created_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.TIMESTAMP(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['asset_uuid'], ['crypto_assets.uuid'], ),
     sa.ForeignKeyConstraint(['tg_chat_uuid'], ['tg_chats.uuid'], ),
     sa.PrimaryKeyConstraint('uuid'),
@@ -177,9 +177,9 @@ def upgrade() -> None:
     sa.Column('asset_uuid', sa.UUID(), nullable=False),
     sa.Column('tg_user_uuid', sa.UUID(), nullable=False),
     sa.Column('status', sa.Enum('ACTIVE', 'INACTIVE', name='cryptofavouritestatus', native_enum=False, length=None), nullable=False),
-    sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('deleted_at', sa.TIMESTAMP(), nullable=True),
+    sa.Column('created_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.TIMESTAMP(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['asset_uuid'], ['crypto_assets.uuid'], ),
     sa.ForeignKeyConstraint(['tg_user_uuid'], ['tg_users.uuid'], ),
     sa.PrimaryKeyConstraint('uuid'),
@@ -189,9 +189,9 @@ def upgrade() -> None:
     op.create_table('tg_chats_to_users',
     sa.Column('chat_uuid', sa.UUID(), nullable=False),
     sa.Column('user_uuid', sa.UUID(), nullable=False),
-    sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('deleted_at', sa.TIMESTAMP(), nullable=True),
+    sa.Column('created_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.TIMESTAMP(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('deleted_at', sa.TIMESTAMP(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['chat_uuid'], ['tg_chats.uuid'], ),
     sa.ForeignKeyConstraint(['user_uuid'], ['tg_users.uuid'], ),
     sa.PrimaryKeyConstraint('chat_uuid', 'user_uuid')

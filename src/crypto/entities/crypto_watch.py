@@ -14,6 +14,9 @@ if TYPE_CHECKING:
 
 
 class WatchInterval(Enum):
+    # Only for testing purposes
+    EVERY_10_SECONDS = 'EVERY_10_SECONDS'
+
     EVERY_30_MINUTES = 'EVERY_30_MINUTES'
     EVERY_1_HOUR = 'EVERY_1_HOUR'
     EVERY_3_HOURS = 'EVERY_3_HOURS'
@@ -48,7 +51,7 @@ class CryptoWatch(Base):
     )
 
     next_execution_at: Mapped[datetime | None] = mapped_column(
-        sa.TIMESTAMP,
+        sa.TIMESTAMP(timezone=True),
         nullable=True
     )
 
@@ -72,7 +75,7 @@ class CryptoWatch(Base):
         # I don't fucking know why, but typing has broken here
         foreign_keys=cast(list[sa.Column], [tg_chat_uuid])
     )
-
+   
     __table_args__ = (
         sa.UniqueConstraint('asset_uuid', 'tg_chat_uuid'),
     )
