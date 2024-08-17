@@ -13,4 +13,4 @@ class BotPersonalCommandsRouter:
     @TelegramBot.handle_message(CommandStart())
     async def start(self, message: Message):
         await message.reply(
-            "Hello! I'm a bot that can help you with your assets. Use /help to see all available commands.")
+            "Hello! I'm a bot that can help you with your assets.")
