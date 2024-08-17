@@ -23,6 +23,11 @@ class WatchInterval(Enum):
     # EVERY_WEEK = 'EVERY_WEEK'
 
 
+class CryptoWatchStatus(Enum):
+    ACTIVE = 'ACTIVE'
+    INACTIVE = 'INACTIVE'
+
+
 class CryptoWatch(Base):
     __tablename__ = 'crypto_chat_watches'
 
@@ -30,10 +35,22 @@ class CryptoWatch(Base):
 
     asset_uuid: Mapped[sa.UUID] = mapped_column(sa.ForeignKey('crypto_assets.uuid'), nullable=False)
     tg_chat_uuid: Mapped[sa.UUID] = mapped_column(sa.ForeignKey('tg_chats.uuid'), nullable=False)
-    interval: Mapped[WatchInterval] = mapped_column(sa.Enum(WatchInterval, native_enum=False, length=None),
-                                                    nullable=False)
+    interval: Mapped[WatchInterval] = mapped_column(
+        sa.Enum(WatchInterval, native_enum=False, length=None),
+        nullable=False
+    )
 
-    next_execution_at: Mapped[datetime | None] = mapped_column(sa.TIMESTAMP, nullable=True)
+    status: Mapped[CryptoWatchStatus] = mapped_column(
+        sa.Enum(CryptoWatchStatus, native_enum=False, length=None),
+        nullable=False,
+        default=CryptoWatchStatus.ACTIVE,
+        index=True
+    )
+
+    next_execution_at: Mapped[datetime | None] = mapped_column(
+        sa.TIMESTAMP,
+        nullable=True
+    )
 
     @validates('next_execution_at')
     def validate_next_execution_at(self, value: datetime | None) -> datetime | None:

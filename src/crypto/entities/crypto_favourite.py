@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import cast, TYPE_CHECKING
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -10,6 +11,11 @@ if TYPE_CHECKING:
     from .crypto_watch import CryptoWatch
 
 
+class CryptoFavouriteStatus(Enum):
+    ACTIVE = 'ACTIVE'
+    INACTIVE = 'INACTIVE'
+
+
 class CryptoFavourite(Base):
     __tablename__ = 'crypto_favourites'
 
@@ -17,6 +23,13 @@ class CryptoFavourite(Base):
 
     asset_uuid: Mapped[sa.UUID] = mapped_column(sa.ForeignKey('crypto_assets.uuid'), nullable=False)
     tg_user_uuid: Mapped[sa.UUID] = mapped_column(sa.ForeignKey('tg_users.uuid'), nullable=False)
+
+    status: Mapped[CryptoFavouriteStatus] = mapped_column(
+        sa.Enum(CryptoFavouriteStatus, native_enum=False, length=None),
+        nullable=False,
+        index=True,
+        default=CryptoFavouriteStatus.ACTIVE
+    )
 
     asset: Mapped['CryptoAsset'] = relationship(
         'CryptoAsset',

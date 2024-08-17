@@ -2,8 +2,8 @@ from sqlalchemy.dialects.postgresql import insert, UUID
 from sqlalchemy.orm import joinedload, contains_eager
 
 from crypto.entities.crypto_asset import CryptoAsset
-from crypto.entities.crypto_favourite import CryptoFavourite
-from crypto.entities.crypto_watch import CryptoWatch
+from crypto.entities.crypto_favourite import CryptoFavourite, CryptoFavouriteStatus
+from crypto.entities.crypto_watch import CryptoWatch, CryptoWatchStatus
 from postgres import PgRepo, pg_session
 import sqlalchemy as sa
 
@@ -40,7 +40,7 @@ class CryptoFavouritesRepo(PgRepo):
             .where(
                 sa.and_(
                     tg_user_uuid == CryptoFavourite.tg_user_uuid,
-                    CryptoFavourite.deleted_at.is_(None)
+                    CryptoFavourite.status == CryptoFavouriteStatus.ACTIVE
                 )
             )
         )
@@ -53,7 +53,7 @@ class CryptoFavouritesRepo(PgRepo):
             .where(
                 sa.and_(
                     tg_user_uuid == CryptoFavourite.tg_user_uuid,
-                    CryptoFavourite.deleted_at.is_(None)
+                    CryptoFavourite.status == CryptoFavouriteStatus.ACTIVE
                 )
             )
             .order_by(CryptoFavourite.updated_at.desc())
@@ -66,7 +66,7 @@ class CryptoFavouritesRepo(PgRepo):
                 contains_eager(CryptoFavourite.asset),
                 joinedload(CryptoFavourite.watch.and_(
                     tg_chat_uuid == CryptoWatch.tg_chat_uuid,
-                    CryptoWatch.deleted_at.is_(None)
+                    CryptoWatchStatus.ACTIVE == CryptoWatch.status
                 ))
             )
         )

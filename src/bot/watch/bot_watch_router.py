@@ -5,7 +5,7 @@ from aiogram.filters import Command
 from crypto.crypto_assets_repo import CryptoAssetsRepo
 from crypto.crypto_watches_repo import CryptoWatchesRepo
 from crypto.crypto_favourites_repo import CryptoFavouritesRepo
-from crypto.entities.crypto_watch import CryptoWatch, WatchInterval
+from crypto.entities.crypto_watch import CryptoWatch, WatchInterval, CryptoWatchStatus
 from telegram.entities.tg_chat import TgChat
 from telegram.tg_chats_repo import TgChatsRepo
 from telegram.tg_users_repo import TgUsersRepo
@@ -122,7 +122,7 @@ class BotWatchRouter:
                 asset_uuid=asset.uuid,
                 tg_chat_uuid=tg_user.chat.uuid,
                 interval=WatchInterval(callback_data.interval),
-                deleted_at=None
+                status=CryptoWatchStatus.ACTIVE
             )
         )
 
@@ -172,7 +172,7 @@ class BotWatchRouter:
         watch = CryptoWatch(
             asset_uuid=uuid.UUID(callback_data.asset_uuid),
             tg_chat_uuid=tg_user.chat.uuid,
-            deleted_at=datetime.now()
+            status=CryptoWatchStatus.INACTIVE
         )
 
         await self.__crypto_watches_repo.update(watch, [CryptoWatch.asset_uuid, CryptoWatch.tg_chat_uuid])

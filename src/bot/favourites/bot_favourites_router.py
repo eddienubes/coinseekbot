@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery
 from crypto.crypto_assets_repo import CryptoAssetsRepo
 from crypto.crypto_favourites_repo import CryptoFavouritesRepo
 from crypto.crypto_watches_repo import CryptoWatchesRepo
-from crypto.entities.crypto_favourite import CryptoFavourite
+from crypto.entities.crypto_favourite import CryptoFavourite, CryptoFavouriteStatus
 from postgres import pg_session
 from telegram.entities.tg_user import TgUser
 from telegram.tg_chats_repo import TgChatsRepo
@@ -71,7 +71,7 @@ class BotFavouritesRouter:
         favourite = CryptoFavourite(
             asset_uuid=uuid.UUID(callback_data.asset_uuid),
             tg_user_uuid=tg_user.uuid,
-            deleted_at=None
+            status=CryptoFavouriteStatus.ACTIVE
         )
 
         await self.__crypto_favourites_repo.upsert(favourite)
@@ -102,6 +102,6 @@ class BotFavouritesRouter:
         favourite = CryptoFavourite(
             asset_uuid=uuid.UUID(callback_data.asset_uuid),
             tg_user_uuid=tg_user.uuid,
-            deleted_at=datetime.now()
+            status=CryptoFavouriteStatus.INACTIVE
         )
         await self.__crypto_favourites_repo.upsert(favourite)
