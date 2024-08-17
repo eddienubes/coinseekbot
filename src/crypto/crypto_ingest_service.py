@@ -64,23 +64,6 @@ class CryptoIngestService:
             quotes_hm = dict[int, CryptoAssetQuote]()
 
             for coin in res.data:
-                quote: BinanceCoinQuoteEntry | None = getattr(getattr(coin, 'quote', None), 'USD', None)
-
-                if quote:
-                    quotes_hm[coin.id] = CryptoAssetQuote(
-                        cmc_last_updated=date_parser.parse(quote.last_updated).replace(tzinfo=None),
-                        market_cap_dominance=quote.market_cap_dominance,
-                        percent_change_30d=quote.percent_change_30d,
-                        percent_change_1h=quote.percent_change_1h,
-                        percent_change_24h=quote.percent_change_24h,
-                        percent_change_7d=quote.percent_change_7d,
-                        percent_change_60d=quote.percent_change_60d,
-                        percent_change_90d=quote.percent_change_90d,
-                        market_cap=quote.market_cap,
-                        volume_change_24h=quote.volume_change_24h,
-                        volume_24h=quote.volume_24h,
-                        price=quote.price
-                    )
 
                 asset = CryptoAsset(
                     ticker=coin.symbol,
@@ -94,6 +77,31 @@ class CryptoIngestService:
                     tags=[CryptoAssetTag(name=tag) for tag in coin.tags]
                 )
                 assets.append(asset)
+
+                quote: BinanceCoinQuoteEntry | None = getattr(getattr(coin, 'quote', None), 'USD', None)
+
+                if not quote:
+                    continue
+
+                quote_entity = CryptoAssetQuote(
+                    cmc_last_updated=date_parser.parse(quote.last_updated),
+                    market_cap_dominance=quote.market_cap_dominance,
+                    percent_change_30d=quote.percent_change_30d,
+                    percent_change_1h=quote.percent_change_1h,
+                    percent_change_24h=quote.percent_change_24h,
+                    percent_change_7d=quote.percent_change_7d,
+                    percent_change_60d=quote.percent_change_60d,
+                    percent_change_90d=quote.percent_change_90d,
+                    market_cap=quote.market_cap,
+                    volume_change_24h=quote.volume_change_24h,
+                    volume_24h=quote.volume_24h,
+                    price=quote.price
+                )
+
+                has_quote_changed = await self.has_quote_changed(quote_entity)
+
+                if has_quote_changed:
+                    quotes_hm[coin.id] = quote_entity
 
             asset_chunks = itertools.batched(assets, 150)
 
@@ -139,6 +147,20 @@ class CryptoIngestService:
             # Request next batch of coins with updates
             #
             res = await self.__binance_ui_api.get_all_coins(offset=count + 1, limit=5000)
+
+    async def has_quote_changed(self, quote: CryptoAssetQuote) -> bool:
+        quote_hash = str(hash(quote))
+
+        key = f'quote:{quote.asset_uuid}'
+
+        existing_hash = await self.__redis.get(key)
+
+        if existing_hash == quote_hash:
+            return False
+
+        await self.__redis.set(key, quote_hash)
+
+        return True
 
     async def on_module_init(self) -> None:
         # Start the job in the next hour

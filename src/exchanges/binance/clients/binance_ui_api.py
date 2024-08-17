@@ -55,7 +55,7 @@ class BinanceUiApi:
                 return dto.data.body
 
         # Sometimes binance returns 500, retrying
-        return await retry(_, max_retries=7, jitter=True, backoff=1.18)
+        return await retry(_, max_retries=10, jitter=True, backoff=1.18)
 
     async def on_module_destroy(self):
         await self.session.__aexit__(None, None, None)

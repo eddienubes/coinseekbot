@@ -58,9 +58,8 @@ class CryptoAssetQuote(Base):
         return value
 
     @staticmethod
-    def random(asset_uuid: sa.UUID) -> 'CryptoAssetQuote':
-        return CryptoAssetQuote(
-            asset_uuid=asset_uuid,
+    def random(**kwargs) -> 'CryptoAssetQuote':
+        base = CryptoAssetQuote(
             cmc_last_updated=datetime.now().replace(tzinfo=None),
             market_cap_dominance=faker.pydecimal(positive=True, left_digits=5, right_digits=5),
             percent_change_30d=faker.pydecimal(positive=True, left_digits=5, right_digits=5),
@@ -73,4 +72,6 @@ class CryptoAssetQuote(Base):
             volume_change_24h=faker.pydecimal(positive=True, left_digits=5, right_digits=5),
             volume_24h=faker.pydecimal(positive=True, left_digits=5, right_digits=5),
             price=faker.pydecimal(positive=True, left_digits=5, right_digits=5),
-        )
+        ).to_dict()
+
+        return CryptoAssetQuote(**{**base, **kwargs})

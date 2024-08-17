@@ -3,10 +3,23 @@ from datetime import datetime
 from sqlalchemy import TIMESTAMP, func, Column
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
 
+import json
+
+
+class Encoder(json.JSONEncoder):
+    """Custom JSON encoder that converts objects to strings"""
+
+    def default(self, o):
+        try:
+            return json.JSONEncoder.default(self, o)
+        except Exception as e:
+            return str(o)
+
 
 class Base(DeclarativeBase):
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now(),
+    updated_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now(),
+                                                 onupdate=func.now(),
                                                  nullable=False)
     deleted_at: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True), nullable=True)
 
@@ -55,6 +68,14 @@ class Base(DeclarativeBase):
             **hm,
             **kwargs
         }
+
+    def __hash__(self) -> int:
+        this_dict = self.to_dict()
+        # Sort the dict by key to make sure the hash is consistent
+        this_dict = dict(sorted(this_dict.items(), key=lambda x: x[0]))
+        json_str = json.dumps(this_dict, cls=Encoder)
+
+        return hash(json_str)
 
     def __repr__(self):
         return f'{self.__class__.__name__}({self.to_dict()})'

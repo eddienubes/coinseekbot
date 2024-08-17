@@ -16,6 +16,19 @@ class TestCryptoWatchesRepo:
     async def repo(self, container: Container):
         yield container.get(CryptoWatchesRepo)
 
+    async def test_quote_hash(self):
+        quote1 = CryptoAssetQuote.random(
+            asset_uuid=uuid.uuid4()
+        )
+        quote2 = CryptoAssetQuote.random(**quote1.to_dict())
+
+        quote3 = CryptoAssetQuote.random(asset_uuid=uuid.uuid4())
+
+        assert hash(quote1) == hash(quote2)
+
+        assert hash(quote1) != hash(quote3)
+        assert hash(quote2) != hash(quote3)
+
     async def test_upsert(self, repo: CryptoWatchesRepo):
         asset = CryptoAsset.random()
         tg_chat = TgChat.random()
