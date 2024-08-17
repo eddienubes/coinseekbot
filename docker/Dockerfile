@@ -47,4 +47,4 @@ COPY src src
 USER appuser
 
 # Run the application.
-CMD source .venv/bin/activate && make bot
+CMD source .venv/bin/activate && make bot && make migrate-pg
