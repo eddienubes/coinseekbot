@@ -16,7 +16,12 @@ class CryptoAssetQuote(Base):
 
     id: Mapped[int] = mapped_column(sa.Integer, sa.Identity(), primary_key=True)
 
-    asset_uuid: Mapped[sa.UUID] = mapped_column(sa.ForeignKey('crypto_assets.uuid'), index=True, nullable=False)
+    asset_uuid: Mapped[sa.UUID] = mapped_column(
+        sa.ForeignKey('crypto_assets.uuid'),
+        index=True,
+        nullable=False,
+        unique=True
+    )
 
     cmc_last_updated: Mapped[datetime] = mapped_column(sa.TIMESTAMP(timezone=True), nullable=False)
 

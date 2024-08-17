@@ -48,6 +48,7 @@ class BinanceUiApi:
                 success = data.data.success
 
                 if not success:
+                    self.__logger.error(f'Failed to fetch all coins, response: {data}')
                     raise BinanceApiException('Failed to fetch all coins', data.data.body.status)
 
                 dto = BinanceAllCoinsDto.from_dict(data)

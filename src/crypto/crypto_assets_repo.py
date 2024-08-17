@@ -16,6 +16,12 @@ from .entities.crypto_asset_to_asset_tag import CryptoAssetToAssetTag
 
 
 class CryptoAssetsRepo(PgRepo):
+    @pg_session
+    async def get_by_cmc_ids(self, cmc_ids: Sequence[int]) -> list[CryptoAsset]:
+        query = select(CryptoAsset).where(CryptoAsset.cmc_id.in_(cmc_ids))
+
+        hit = await self.session.scalars(query)
+        return list(hit.all())
 
     @pg_session
     async def generate(self, **kwargs) -> CryptoAsset:
@@ -129,6 +135,28 @@ class CryptoAssetsRepo(PgRepo):
     @pg_session
     async def bulk_insert_quotes(self, quotes: list[CryptoAssetQuote]) -> list[CryptoAssetQuote]:
         return await self._insert_many(entity=CryptoAssetQuote, values=quotes)
+
+    @pg_session
+    async def bulk_upsert_quotes(self, quotes: list[CryptoAssetQuote]) -> list[CryptoAssetQuote]:
+        if not quotes:
+            return []
+
+        quotes_dicts = [watch.to_dict() for watch in quotes]
+
+        query = insert(CryptoAssetQuote).values(quotes_dicts)
+        query = query.on_conflict_do_update(
+            index_elements=[CryptoAssetQuote.asset_uuid],
+            set_=self.on_conflict_do_update_mapping(
+                entity=CryptoAssetQuote,
+                insert=query,
+                conflict=[CryptoAssetQuote.asset_uuid],
+                update=list(quotes_dicts[0].keys())
+            )
+        ).returning(CryptoAssetQuote)
+
+        raw_hits = await self.session.scalars(query)
+
+        return list(raw_hits.all())
 
     @pg_session
     async def get_with_latest_quote(

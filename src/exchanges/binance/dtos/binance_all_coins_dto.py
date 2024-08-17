@@ -5,7 +5,7 @@ from decimal import Decimal
 from exchanges.binance.dtos.binance_base_dto import BinanceBaseDto
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(slots=True)
 class BinanceAllCoinsStatus:
     timestamp: str
     elapsed: int
@@ -17,7 +17,7 @@ class BinanceAllCoinsStatus:
     error_message: str | None = None
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(slots=True)
 class BinanceCoinQuoteEntry(DataClassJsonMixin):
     price: Decimal
     volume_24h: Decimal
@@ -36,12 +36,12 @@ class BinanceCoinQuoteEntry(DataClassJsonMixin):
     tvl: Decimal | None = None
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(slots=True)
 class BinanceCoinQuote(DataClassJsonMixin):
     USD: BinanceCoinQuoteEntry | None = None
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(slots=True)
 class BinanceAllCoinsEntry(DataClassJsonMixin):
     # cmc id
     id: int
@@ -67,18 +67,18 @@ class BinanceAllCoinsEntry(DataClassJsonMixin):
     platform: dict | None = None
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(slots=True)
 class BinanceAllCoinsBody(DataClassJsonMixin):
     status: BinanceAllCoinsStatus
     data: list[BinanceAllCoinsEntry]
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(slots=True)
 class BinanceAllCoinsData(DataClassJsonMixin):
     success: bool
     body: BinanceAllCoinsBody
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(slots=True)
 class BinanceAllCoinsDto(BinanceBaseDto):
     data: BinanceAllCoinsData

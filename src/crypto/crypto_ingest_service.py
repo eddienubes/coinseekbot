@@ -32,9 +32,26 @@ class CryptoIngestService:
         self.__logger = logging.getLogger(self.__class__.__name__)
 
     @pg_session
+    async def lock_ingest_crypto_asset_quotes(self) -> None:
+        # timeout - 150 seconds
+        lock = self.__redis.lock('crypto_ingest', timeout=150)
+
+        # Skip if lock is already acquired
+        acquired = await lock.acquire(blocking=False)
+        if not acquired:
+            return
+
+        try:
+            await self.ingest_crypto_asset_quotes()
+        except Exception as e:
+            self.__logger.error(f'Failed to ingest crypto asset quotes: {e}')
+        finally:
+            await lock.release()
+
+    @pg_session
     async def lock_ingest_crypto_assets(self) -> None:
-        # timeout - 300 seconds
-        lock = self.__redis.lock('crypto_ingest', timeout=300)
+        # timeout - 150 seconds
+        lock = self.__redis.lock('crypto_ingest', timeout=150)
 
         # Skip if lock is already acquired
         acquired = await lock.acquire(blocking=False)
@@ -49,39 +66,29 @@ class CryptoIngestService:
             await lock.release()
 
     @pg_session
-    async def ingest_crypto_assets(self) -> None:
-        self.__logger.info('ingest_crypto_assets: started')
+    async def ingest_crypto_asset_quotes(self) -> None:
+        self.__logger.info('ingest_crypto_asset_quotes: started')
 
         res = await self.__binance_ui_api.get_all_coins(limit=5000)
         count = 0
 
         while res.status.total_count and count < res.status.total_count:
             self.__logger.info(
-                f'ingest_crypto_assets: processing {len(res.data) + count}/{res.status.total_count} coins')
+                f'ingest_crypto_asset_quotes: processing {len(res.data) + count}/{res.status.total_count} coins')
 
-            assets = list[CryptoAsset]()
             # crypto id from cmc_id <-> new quote
             quotes_hm = dict[int, CryptoAssetQuote]()
 
+            assets = await self.__crypto_repo.get_by_cmc_ids([coin.id for coin in res.data])
+            assets_hm = {asset.cmc_id: asset for asset in assets}
+
             for coin in res.data:
-
-                asset = CryptoAsset(
-                    ticker=coin.symbol,
-                    name=coin.name,
-                    slug=coin.slug,
-                    cmc_date_added=date_parser.parse(coin.date_added).replace(tzinfo=None),
-                    num_market_pairs=coin.num_market_pairs,
-                    infinite_supply=coin.infinite_supply,
-                    max_supply=str(coin.max_supply) if coin.max_supply else None,
-                    cmc_id=coin.id,
-                    tags=[CryptoAssetTag(name=tag) for tag in coin.tags]
-                )
-                assets.append(asset)
-
                 quote: BinanceCoinQuoteEntry | None = getattr(getattr(coin, 'quote', None), 'USD', None)
 
-                if not quote:
+                if not quote or coin.id not in assets_hm:
                     continue
+
+                asset = assets_hm[coin.id]
 
                 quote_entity = CryptoAssetQuote(
                     cmc_last_updated=date_parser.parse(quote.last_updated),
@@ -95,13 +102,66 @@ class CryptoIngestService:
                     market_cap=quote.market_cap,
                     volume_change_24h=quote.volume_change_24h,
                     volume_24h=quote.volume_24h,
-                    price=quote.price
+                    price=quote.price,
+                    asset_uuid=asset.uuid
                 )
 
-                has_quote_changed = await self.has_quote_changed(quote_entity)
+                # has_quote_changed = await self.has_quote_changed(quote_entity)
+                # 
+                # if has_quote_changed:
 
-                if has_quote_changed:
-                    quotes_hm[coin.id] = quote_entity
+                quotes_hm[coin.id] = quote_entity
+
+            quote_chunks = itertools.batched(quotes_hm.values(), 150)
+            insert_count = 0
+
+            #
+            # Insert quote
+            #
+            for chunk in quote_chunks:
+                upserted_quotes = await self.__crypto_repo.bulk_upsert_quotes(chunk)
+
+                insert_count += len(upserted_quotes)
+                self.__logger.info(f'ingest_crypto_asset_quotes: inserted {insert_count}/{len(quotes_hm)} quotes')
+
+            count += len(res.data)
+
+            # Sleep for some time to avoid rate limiting
+            random_sleep_sec = random.randint(3, 6)
+            await asyncio.sleep(random_sleep_sec)
+
+            #
+            # Request next batch of coins with updates
+            #
+            res = await self.__binance_ui_api.get_all_coins(offset=count + 1, limit=5000)
+
+    @pg_session
+    async def ingest_crypto_assets(self) -> None:
+        self.__logger.info('ingest_crypto_assets: started')
+
+        res = await self.__binance_ui_api.get_all_coins(limit=5000)
+        count = 0
+
+        while res.status.total_count and count < res.status.total_count:
+            self.__logger.info(
+                f'ingest_crypto_assets: processing {len(res.data) + count}/{res.status.total_count} coins')
+
+            assets = list[CryptoAsset]()
+            # crypto id from cmc_id <-> new quote
+
+            for coin in res.data:
+                asset = CryptoAsset(
+                    ticker=coin.symbol,
+                    name=coin.name,
+                    slug=coin.slug,
+                    cmc_date_added=date_parser.parse(coin.date_added).replace(tzinfo=None),
+                    num_market_pairs=coin.num_market_pairs,
+                    infinite_supply=coin.infinite_supply,
+                    max_supply=str(coin.max_supply) if coin.max_supply else None,
+                    cmc_id=coin.id,
+                    tags=[CryptoAssetTag(name=tag) for tag in coin.tags]
+                )
+                assets.append(asset)
 
             asset_chunks = itertools.batched(assets, 150)
 
@@ -117,25 +177,6 @@ class CryptoIngestService:
                 upsert_count += len(upserted_assets)
 
                 self.__logger.info(f'ingest_crypto_assets: upserted {upsert_count}/{len(assets)} assets')
-
-                for asset in upserted_assets:
-                    quote = quotes_hm.get(asset.cmc_id)
-                    if not quote:
-                        continue
-
-                    quote.asset_uuid = asset.uuid
-
-            quote_chunks = itertools.batched(quotes_hm.values(), 150)
-            insert_count = 0
-
-            #
-            # Insert quote
-            #
-            for chunk in quote_chunks:
-                upserted_quotes = await self.__crypto_repo.bulk_insert_quotes(chunk)
-
-                insert_count += len(upserted_quotes)
-                self.__logger.info(f'ingest_crypto_assets: inserted {insert_count}/{len(quotes_hm)} quotes')
 
             count += len(res.data)
 

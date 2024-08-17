@@ -44,13 +44,6 @@ class CryptoAsset(Base):
         viewonly=True
     )
 
-    quotes: Mapped[list['CryptoAssetQuote']] = relationship(
-        'CryptoAssetQuote',
-        # back_populates='asset',
-        lazy='noload',
-        viewonly=True
-    )
-
     latest_quote: Mapped['CryptoAssetQuote'] = relationship(
         'CryptoAssetQuote',
         lazy='noload',

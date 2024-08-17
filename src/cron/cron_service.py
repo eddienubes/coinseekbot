@@ -32,8 +32,8 @@ class CronService:
     async def on_module_init(self):
         self.__scheduler = await AsyncScheduler().__aenter__()
 
-        # if config.env == 'test':
-        #     return
+        if config.env == 'test':
+            return
 
         # TODO: Perhaps, we could turn the entire container into its own context manager.
         # And then replace on_module_init and on_module_destroy with __aenter__ and __aexit__.
