@@ -6,7 +6,8 @@ def render_join() -> str:
         """
         What's up Bitcoin holders, condolences to the rest 👋
         Try @coinseekbot inline to start searching for your precious coins.
+        Don't forget to save your favourites.
 
-        Use /help to get some <s>mental</s> help.
+        Later on, you can check them out with /watch to get notified!
         """
     )
