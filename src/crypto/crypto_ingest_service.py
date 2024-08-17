@@ -141,9 +141,7 @@ class CryptoIngestService:
             res = await self.__binance_ui_api.get_all_coins(offset=count + 1, limit=5000)
 
     async def on_module_init(self) -> None:
-        now = datetime.now()
-
         # Start the job in the next hour
-        start_time = now.replace(minute=now.minute + 15)
+        # start_time = now.replace(minute=now.minute + 15)
 
-        self.__cron.add_job(self.ingest_crypto_assets, IntervalTrigger(minutes=15, start_time=start_time))
+        self.__cron.add_job(self.lock_ingest_crypto_assets, IntervalTrigger(minutes=15))
