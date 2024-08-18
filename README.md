@@ -8,6 +8,7 @@
 - TODO: Anomaly detection and alerting
 - TODO: Portfolio tracking
 - TODO: News alerts?
+- TODO: Historical Visualizations?
 
 ### Prerequisites
 
