@@ -41,7 +41,7 @@ async def inline_query_result(
         """),
         input_message_content=InputTextMessageContent(
             message_text=inspect.cleandoc(f"""
-                <b>{asset.ticker}</b> - <a href="https://coinmarketcap.com/currencies/{asset.name.replace(' ', '').lower()}">{asset.name}</a>
+                <b>{asset.ticker}</b> - <a href="https://coinmarketcap.com/currencies/{asset.name.replace(' ', '-').lower()}">{asset.name}</a>
 
                 💸 <b>Price:</b> ${price}
                 <blockquote expandable>{indicator_1h} {change_1h_str} in 1h
