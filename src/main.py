@@ -21,7 +21,7 @@ async def main():
         callback=message_handler
     )
 
-    await asyncio.sleep(10)
+    # await asyncio.sleep(10)
 
     # Combine selected streams
     # ws_client.subscribe(
