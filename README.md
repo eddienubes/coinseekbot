@@ -1,6 +1,6 @@
 ## Coin Seek Bot
 
-> Telegram handle @coinseekbot
+> Telegram handle https://t.me/coinseekbot
 
 - Search for crypto using inline mode @coinseekbot
 - Add coins to favourites
