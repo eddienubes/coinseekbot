@@ -153,6 +153,8 @@ def render_watchlist(
 def render_watchlist_text() -> str:
     return inspect.cleandoc(f"""
         <b>Watch your favourite assets</b>
+        
+        You can add more coins in this list by searching for them with @coinseekbot inline.
     """)
 
 
