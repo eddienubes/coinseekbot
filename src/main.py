@@ -17,7 +17,7 @@ async def main():
     ws_client = SpotWebsocketStreamClient(on_message=message_handler)
 
     ws_client.mini_ticker(
-        # symbol='notusdt',
+        symbol='notusdt',
         callback=message_handler
     )
 
