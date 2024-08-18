@@ -1,7 +1,8 @@
+from uuid import UUID
+
 import pytest
 from hamcrest import assert_that, equal_to, has_properties, instance_of, \
     has_items
-from asyncpg.pgproto.pgproto import UUID
 
 from container import Container
 from .binance_crypto_asset_repo import BinanceCryptoAssetRepo

@@ -8,6 +8,13 @@ class Pageable[T]:
     limit: int
     offset: int
 
+    def meta(self):
+        return {
+            'total': self.total,
+            'limit': self.limit,
+            'offset': self.offset
+        }
+
     def get_total_pages(self) -> int:
         return self.total // self.limit + 1
 

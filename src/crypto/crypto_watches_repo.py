@@ -5,10 +5,13 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import InstrumentedAttribute, aliased, contains_eager
 
 from crypto.entities.crypto_asset import CryptoAsset
+from crypto.entities.crypto_favourite import CryptoFavourite
 from crypto.entities.crypto_watch import CryptoWatch, CryptoWatchStatus
 from postgres import PgRepo, pg_session
 from telegram.entities.tg_chat import TgChat
 from utils import Pageable
+
+type Watchlist = Pageable[tuple[CryptoWatch | None, CryptoAsset, CryptoFavourite | None]]
 
 
 class CryptoWatchesRepo(PgRepo):
@@ -112,6 +115,78 @@ class CryptoWatchesRepo(PgRepo):
         raw_hits = await self.session.scalars(query)
 
         return list(raw_hits.all())
+
+    @pg_session
+    async def get_watchlist(
+            self,
+            tg_user_uuid: sa.UUID | str,
+            tg_chat_uuid: sa.UUID | str,
+            limit: int = 5,
+            offset: int = 0
+    ) -> Watchlist:
+        query = (
+            select(CryptoWatch, CryptoAsset, CryptoFavourite)
+            .outerjoin_from(
+                CryptoWatch, CryptoFavourite,
+                sa.and_(
+                    CryptoFavourite.asset_uuid == CryptoWatch.asset_uuid,
+                    CryptoFavourite.tg_user_uuid == tg_user_uuid
+                ), full=True
+            )
+            .join_from(
+                CryptoWatch, CryptoAsset,
+                sa.or_(
+                    CryptoAsset.uuid == CryptoWatch.asset_uuid,
+                    CryptoAsset.uuid == CryptoFavourite.asset_uuid
+                )
+            )
+            .where(
+                sa.and_(
+                    CryptoWatch.tg_chat_uuid == tg_chat_uuid
+                )
+            )
+            .order_by(
+                CryptoWatch.status,
+                CryptoFavourite.updated_at.nullslast(),
+                CryptoWatch.updated_at.nullslast(),
+            )
+            .limit(limit)
+            .offset(offset)
+
+        )
+
+        count_query = (
+            select(sa.func.count())
+            .outerjoin_from(
+                CryptoWatch, CryptoFavourite,
+                sa.and_(
+                    CryptoFavourite.asset_uuid == CryptoWatch.asset_uuid,
+                    CryptoFavourite.tg_user_uuid == tg_user_uuid
+                ), full=True
+            )
+            .join_from(
+                CryptoWatch, CryptoAsset,
+                sa.or_(
+                    CryptoAsset.uuid == CryptoWatch.asset_uuid,
+                    CryptoAsset.uuid == CryptoFavourite.asset_uuid
+                )
+            )
+            .where(
+                sa.and_(
+                    CryptoWatch.tg_chat_uuid == tg_chat_uuid
+                )
+            )
+        )
+
+        hits = await self.session.execute(query)
+        total = await self.session.scalar(count_query)
+
+        return Pageable(
+            hits=list(hits.all()),
+            total=total,
+            limit=limit,
+            offset=offset
+        )
 
     @pg_session
     async def get_watches_to_notify(self) -> list[CryptoWatch]:

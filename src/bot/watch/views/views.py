@@ -1,5 +1,6 @@
 import asyncio
 import inspect
+from typing import Any
 
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
@@ -12,10 +13,11 @@ from utils import Pageable
 from .callbacks import WatchSelectIntervalCb, StartWatchingCb, StopWatchingCb, StopWatchingConfirmationCb, \
     WatchlistFavouritesCb, WatchlistPageCb
 from ...callbacks import DummyCb
+from crypto.crypto_watches_repo import Watchlist
 
 WATCH_INTERVALS_TEXT = {
     WatchInterval.EVERY_30_MINUTES: '30 minutes',
-    WatchInterval.EVERY_1_HOUR: '1 hours',
+    WatchInterval.EVERY_1_HOUR: '1 hour',
     WatchInterval.EVERY_3_HOURS: '3 hours',
     WatchInterval.EVERY_6_HOURS: '6 hours',
     WatchInterval.EVERY_12_HOURS: '12 hours',
@@ -69,37 +71,30 @@ async def render_start_watching_list(
     )
 
 
-def render_favourites_list(
+def render_watchlist(
         tg_user_id: int,
-        watchlist: Pageable[CryptoWatch | CryptoFavourite]
+        watchlist: Watchlist
 ) -> InlineKeyboardMarkup:
     btns = []
 
-    for item in watchlist.hits:
-        is_watch = isinstance(item, CryptoWatch)
-
-        if is_watch:
-            watch = item
-        else:
-            watch = item.watch
-
+    for watch, asset, fav in watchlist.hits:
         # Watch might not be defined, if it's of a favourite asset
         if watch and watch.status == CryptoWatchStatus.ACTIVE:
-            postfix = f'💫 - Watching 👀' if not is_watch else ' - Watching 👀'
+            postfix = f'💫 - Watching 👀' if fav else ' - Watching 👀'
             cb_data = StopWatchingConfirmationCb(
                 tg_user_id=tg_user_id,
-                asset_uuid=str(item.asset_uuid)
+                asset_uuid=str(asset.uuid)
             ).pack()
         else:
             cb_data = WatchSelectIntervalCb(
-                asset_uuid=str(item.asset_uuid),
+                asset_uuid=str(asset.uuid),
                 tg_user_id=tg_user_id
             ).pack()
-            postfix = '💫' if not is_watch else ''
+            postfix = '💫' if fav else ''
 
         row = [
             InlineKeyboardButton(
-                text=f'{item.asset.name} {postfix}',
+                text=f'{asset.name} {postfix}',
                 callback_data=cb_data
             )
         ]
@@ -113,6 +108,7 @@ def render_favourites_list(
     print('get_total_pages', watchlist.get_total_pages())
     print('get_next_offset', watchlist.get_next_offset())
     print('get_previous_offset', watchlist.get_previous_offset())
+    print('data: ', watchlist.meta())
 
     if not watchlist.is_pageable():
         return InlineKeyboardMarkup(
@@ -154,7 +150,7 @@ def render_favourites_list(
     )
 
 
-def render_favourite_list_text() -> str:
+def render_watchlist_text() -> str:
     return inspect.cleandoc(f"""
         <b>Watch your favourite assets</b>
     """)
