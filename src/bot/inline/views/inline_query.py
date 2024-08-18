@@ -13,9 +13,21 @@ async def inline_query_result(
         asset: CryptoAsset,
         tg_user_id: int
 ) -> InlineQueryResultArticle:
-    price = round_if(asset.latest_quote.price)
-    change_24h = round(asset.latest_quote.percent_change_24h, 2)
-    indicator = '📉' if change_24h < 0 else '📈'
+    latest_quote = asset.latest_quote
+
+    price = round_if(latest_quote.price)
+
+    change_1h = float(round(latest_quote.percent_change_1h, 2))
+    change_24h = float(round(latest_quote.percent_change_24h, 2))
+    change_7d = float(round(latest_quote.percent_change_7d, 2))
+
+    change_1h_str = f'<b>+{change_1h}%</b>' if change_1h > 0 else change_1h
+    change_24h_str = f'<b>+{change_24h}%</b>' if change_24h > 0 else change_24h
+    change_7d_str = f'<b>+{change_7d}%</b>' if change_7d > 0 else change_7d
+
+    indicator_1h = '📉' if change_1h < 0 else '📈'
+    indicator_24h = '📉' if change_24h < 0 else '📈'
+    indicator_7d = '📉' if change_7d < 0 else '📈'
 
     return InlineQueryResultArticle(
         id=str(asset.uuid),
@@ -24,14 +36,18 @@ async def inline_query_result(
         hide_url=True,
         description=inspect.cleandoc(f"""
             💸 Price: ${price}
-            {indicator} {change_24h}% in 24h
+            {indicator_1h} {change_1h} in 1h
+            {indicator_24h} {change_24h} in 24h
         """),
         input_message_content=InputTextMessageContent(
             message_text=inspect.cleandoc(f"""
-                <b>{asset.ticker}</b> - <code>{asset.name}</code>
+                <b>{asset.ticker}</b> - <a href="https://coinmarketcap.com/currencies/{asset.name.replace(' ', '').lower()}">{asset.name}</a>
 
                 💸 <b>Price:</b> ${price}
-                <blockquote>{indicator} {change_24h}% in 24h</blockquote>
+                <blockquote expandable>{indicator_1h} {change_1h_str} in 1h
+                {indicator_24h} {change_24h_str} in 24h
+                {indicator_7d} {change_7d_str} in 7d
+                </blockquote>\n
             """),
             disable_web_page_preview=True,
             parse_mode=ParseMode.HTML,
