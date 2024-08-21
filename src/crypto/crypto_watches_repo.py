@@ -1,15 +1,18 @@
+import uuid
+
 import sqlalchemy as sa
 from numpy import save
-from sqlalchemy import select
+from sqlalchemy import select, distinct
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import InstrumentedAttribute, aliased, contains_eager
 
 from crypto.entities.crypto_asset import CryptoAsset
 from crypto.entities.crypto_favourite import CryptoFavourite
-from crypto.entities.crypto_watch import CryptoWatch, CryptoWatchStatus
+from crypto.entities.crypto_watch import CryptoWatch, CryptoWatchStatus, WatchInterval
 from postgres import PgRepo, pg_session
 from telegram.entities.tg_chat import TgChat
 from utils import Pageable
+from typing import Sequence
 
 type Watchlist = Pageable[tuple[CryptoWatch | None, CryptoAsset, CryptoFavourite | None]]
 
@@ -141,8 +144,12 @@ class CryptoWatchesRepo(PgRepo):
                 )
             )
             .where(
-                sa.and_(
-                    CryptoWatch.tg_chat_uuid == tg_chat_uuid
+                sa.or_(
+                    CryptoWatch.uuid.is_(None),
+                    sa.and_(
+                        CryptoWatch.uuid.is_not(None),
+                        CryptoWatch.tg_chat_uuid == tg_chat_uuid
+                    )
                 )
             )
             .order_by(
@@ -172,8 +179,12 @@ class CryptoWatchesRepo(PgRepo):
                 )
             )
             .where(
-                sa.and_(
-                    CryptoWatch.tg_chat_uuid == tg_chat_uuid
+                sa.or_(
+                    CryptoWatch.uuid.is_(None),
+                    sa.and_(
+                        CryptoWatch.uuid.is_not(None),
+                        CryptoWatch.tg_chat_uuid == tg_chat_uuid
+                    )
                 )
             )
         )
@@ -190,29 +201,51 @@ class CryptoWatchesRepo(PgRepo):
 
     @pg_session
     async def get_watches_to_notify(self) -> list[CryptoWatch]:
-        query = (
+        """
+        Finds watches that are due for execution.
+        In order for a watch to be considered due, at least one of the watches per interval in the group (tg_chat) must be due.
+        This is done in order to notify the same intervals at the same time and avoid spamming the user.
+        """
+
+        watch_alias = aliased(CryptoWatch)
+
+        subquery = aliased(
             select(CryptoWatch)
-            .join(CryptoWatch.asset)
-            .join(CryptoWatch.tg_chat)
+            .distinct(sa.tuple_(CryptoWatch.tg_chat_uuid, CryptoWatch.interval))
+            .where(
+                sa.or_(
+                    # Execution is due
+                    CryptoWatch.next_execution_at <= sa.func.now(),
+                    # Haven't been executed yet
+                    CryptoWatch.next_execution_at.is_(None)
+                )
+            )
+            .subquery()
+        )
+
+        query = (
+            select(watch_alias)
+            .join(watch_alias.asset)
+            .join(watch_alias.tg_chat)
             .join(CryptoAsset.latest_quote)
+            .outerjoin(
+                subquery,
+                sa.and_(
+                    subquery.c.tg_chat_uuid == watch_alias.tg_chat_uuid,
+                    subquery.c.status == CryptoWatchStatus.ACTIVE,
+                    subquery.c.interval == watch_alias.interval
+                )
+            )
             .where(
                 sa.and_(
-                    CryptoWatch.status == CryptoWatchStatus.ACTIVE,
-                    sa.or_(
-                        # Execution is due
-                        CryptoWatch.next_execution_at <= sa.func.now(),
-                        # Haven't been executed yet
-                        CryptoWatch.next_execution_at.is_(None)
-                    ),
-                    CryptoWatch.tg_chat.and_(
-                        TgChat.is_removed.is_(False),
-                    )
+                    watch_alias.status == CryptoWatchStatus.ACTIVE,
+                    subquery.c.uuid.is_not(None),
                 )
             )
             .options(
-                contains_eager(CryptoWatch.asset)
+                contains_eager(watch_alias.asset)
                 .contains_eager(CryptoAsset.latest_quote),
-                contains_eager(CryptoWatch.tg_chat),
+                contains_eager(watch_alias.tg_chat),
             )
         )
 

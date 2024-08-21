@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 
 
 class WatchInterval(Enum):
+    EVERY_10_SECONDS = 'EVERY_10_SECONDS'
     EVERY_30_MINUTES = 'EVERY_30_MINUTES'
     EVERY_1_HOUR = 'EVERY_1_HOUR'
     EVERY_3_HOURS = 'EVERY_3_HOURS'
@@ -22,6 +23,7 @@ class WatchInterval(Enum):
     EVERY_12_HOURS = 'EVERY_12_HOURS'
     EVERY_DAY = 'EVERY_DAY'
     # EVERY_WEEK = 'EVERY_WEEK'
+    
 
 
 class CryptoWatchStatus(Enum):

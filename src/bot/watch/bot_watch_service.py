@@ -11,11 +11,13 @@ from config import config
 from cron import CronService
 from crypto.crypto_watches_repo import CryptoWatchesRepo
 from crypto.entities.crypto_watch import WatchInterval, CryptoWatch
+from postgres import pg_session
 from redis_client import RedisService
 from telegram.tg_chats_repo import TgChatsRepo
 from telegram.tg_users_repo import TgUsersRepo
 
 CRYPTO_INTERVAL_TO_TIMEDELTA = {
+    WatchInterval.EVERY_10_SECONDS: timedelta(seconds=10),
     WatchInterval.EVERY_30_MINUTES: timedelta(minutes=30),
     WatchInterval.EVERY_1_HOUR: timedelta(hours=1),
     WatchInterval.EVERY_3_HOURS: timedelta(hours=3),
@@ -43,6 +45,7 @@ class BotWatchService:
         self.__tg_bot = tg_bot
         self.__logger = logging.getLogger(self.__class__.__name__)
 
+    @pg_session
     async def notify(self) -> None:
         self.__logger.info('notify: started')
 
@@ -50,19 +53,20 @@ class BotWatchService:
         chats_to_send = dict[int, list[CryptoWatch]]()
         watches_to_upsert: list[CryptoWatch] = []
 
-        for w in watches:
-            next_execution_at = datetime.now() + CRYPTO_INTERVAL_TO_TIMEDELTA[w.interval]
-            if not w.next_execution_at:
-                w.next_execution_at = next_execution_at
-                watches_to_upsert.append(w)
+        for watch in watches:
+            next_execution_at = datetime.now() + CRYPTO_INTERVAL_TO_TIMEDELTA[watch.interval]
+
+            if not watch.next_execution_at:
+                watch.next_execution_at = next_execution_at
+                watches_to_upsert.append(watch)
                 continue
 
-            w.next_execution_at = next_execution_at
+            watch.next_execution_at = next_execution_at
 
-            if w.tg_chat.tg_id not in chats_to_send:
-                chats_to_send[w.tg_chat.tg_id] = []
+            if watch.tg_chat.tg_id not in chats_to_send:
+                chats_to_send[watch.tg_chat.tg_id] = []
 
-            chats_to_send[w.tg_chat.tg_id].append(w)
+            chats_to_send[watch.tg_chat.tg_id].append(watch)
 
         async with asyncio.TaskGroup() as tg:
             for chat_id, chat_watches in chats_to_send.items():

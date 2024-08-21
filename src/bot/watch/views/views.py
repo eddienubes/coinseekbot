@@ -16,6 +16,7 @@ from ...callbacks import DummyCb
 from crypto.crypto_watches_repo import Watchlist
 
 WATCH_INTERVALS_TEXT = {
+    WatchInterval.EVERY_10_SECONDS: '10 seconds',
     WatchInterval.EVERY_30_MINUTES: '30 minutes',
     WatchInterval.EVERY_1_HOUR: '1 hour',
     WatchInterval.EVERY_3_HOURS: '3 hours',
@@ -52,12 +53,19 @@ async def render_start_watching_list(
 
         return cb_data, interval
 
+    intervals = [
+        _(interval) for interval in list(WatchInterval)
+        if config.env != 'production' or (
+                interval != WatchInterval.EVERY_10_SECONDS
+                and config.env == 'production'
+        )
+    ]
+
     cbs = list(await asyncio.gather(
-        *[
-            _(interval)
-            for interval in list(WatchInterval)
-        ]
+        *intervals
     ))
+
+    print('cbs', cbs)
 
     btns = [[InlineKeyboardButton(
         text=WATCH_INTERVALS_TEXT[interval],
