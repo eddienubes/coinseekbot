@@ -132,7 +132,9 @@ class CryptoWatchesRepo(PgRepo):
             .outerjoin_from(
                 CryptoWatch, CryptoFavourite,
                 sa.and_(
-                    CryptoFavourite.asset_uuid == CryptoWatch.asset_uuid
+                    CryptoFavourite.asset_uuid == CryptoWatch.asset_uuid,
+                    CryptoFavourite.tg_user_uuid == tg_user_uuid,
+                    CryptoFavourite.status == CryptoFavouriteStatus.ACTIVE
                 ), full=True
             )
             .join_from(
@@ -179,7 +181,9 @@ class CryptoWatchesRepo(PgRepo):
             .outerjoin_from(
                 CryptoWatch, CryptoFavourite,
                 sa.and_(
-                    CryptoFavourite.asset_uuid == CryptoWatch.asset_uuid
+                    CryptoFavourite.asset_uuid == CryptoWatch.asset_uuid,
+                    CryptoFavourite.tg_user_uuid == tg_user_uuid,
+                    CryptoFavourite.status == CryptoFavouriteStatus.ACTIVE
                 ), full=True
             )
             .join_from(
