@@ -54,8 +54,6 @@ async def render_start_watching_list(
         *intervals
     ))
 
-    print('cbs', cbs)
-
     btns = [[InlineKeyboardButton(
         text=WatchInterval.get_text(interval),
         callback_data=cb
@@ -85,8 +83,8 @@ def render_watchlist(
     for watch, asset, fav in watchlist.hits:
         # Watch might not be defined, if it's of a favourite asset
         if watch and watch.status == CryptoWatchStatus.ACTIVE:
-            time = WatchInterval.get_text(watch.interval)
-            postfix = f'💫 - Watching 👀 - {time}' if fav else ' - Watching 👀 - {time}'
+            time_interval = WatchInterval.get_text(watch.interval)
+            postfix = f'💫 - Watching 👀 - {time_interval}' if fav else f' - Watching 👀 - {time_interval}'
             cb_data = StopWatchingConfirmationCb(
                 tg_user_id=tg_user_id,
                 asset_uuid=str(asset.uuid)
