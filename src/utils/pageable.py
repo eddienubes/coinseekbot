@@ -1,4 +1,5 @@
 import dataclasses
+import math
 
 
 @dataclasses.dataclass
@@ -16,7 +17,7 @@ class Pageable[T]:
         }
 
     def get_total_pages(self) -> int:
-        return self.total // self.limit + 1
+        return math.ceil(self.total / self.limit)
 
     def get_current_page(self) -> int:
         return self.offset // self.limit + 1
@@ -28,7 +29,7 @@ class Pageable[T]:
         return self.offset - self.limit
 
     def has_previous_page(self) -> bool:
-        return self.offset != 0
+        return self.offset > 0
 
     def has_next_page(self) -> bool:
         return self.get_total_pages() > self.get_current_page()

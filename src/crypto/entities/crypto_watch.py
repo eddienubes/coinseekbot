@@ -1,10 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import TYPE_CHECKING, cast
 
 import sqlalchemy as sa
 from marshmallow import validates
-from sqlalchemy.orm import mapped_column, Mapped, relationship
+from sqlalchemy import event
+from sqlalchemy.orm import mapped_column, Mapped, relationship, InstanceEvents
 
 from config import config
 from postgres import Base
@@ -22,8 +23,37 @@ class WatchInterval(Enum):
     EVERY_6_HOURS = 'EVERY_6_HOURS'
     EVERY_12_HOURS = 'EVERY_12_HOURS'
     EVERY_DAY = 'EVERY_DAY'
+
     # EVERY_WEEK = 'EVERY_WEEK'
-    
+
+    @classmethod
+    def get_next_datetime(cls, interval: 'WatchInterval') -> datetime:
+        """Gets next execution date starting from now according to the interval"""
+        hm = {
+            WatchInterval.EVERY_10_SECONDS: timedelta(seconds=10),
+            WatchInterval.EVERY_30_MINUTES: timedelta(minutes=30),
+            WatchInterval.EVERY_1_HOUR: timedelta(hours=1),
+            WatchInterval.EVERY_3_HOURS: timedelta(hours=3),
+            WatchInterval.EVERY_6_HOURS: timedelta(hours=6),
+            WatchInterval.EVERY_12_HOURS: timedelta(hours=12),
+            WatchInterval.EVERY_DAY: timedelta(days=1),
+        }
+
+        return datetime.now() + hm[interval]
+
+    @classmethod
+    def get_text(cls, interval: 'WatchInterval') -> str:
+        hm = {
+            WatchInterval.EVERY_10_SECONDS: '10 seconds',
+            WatchInterval.EVERY_30_MINUTES: '30 minutes',
+            WatchInterval.EVERY_1_HOUR: '1 hour',
+            WatchInterval.EVERY_3_HOURS: '3 hours',
+            WatchInterval.EVERY_6_HOURS: '6 hours',
+            WatchInterval.EVERY_12_HOURS: '12 hours',
+            WatchInterval.EVERY_DAY: '1 day',
+        }
+
+        return hm[interval]
 
 
 class CryptoWatchStatus(Enum):
@@ -50,16 +80,10 @@ class CryptoWatch(Base):
         index=True
     )
 
-    next_execution_at: Mapped[datetime | None] = mapped_column(
+    next_execution_at: Mapped[datetime] = mapped_column(
         sa.TIMESTAMP(timezone=True),
-        nullable=True
+        nullable=False
     )
-
-    @validates('next_execution_at')
-    def validate_next_execution_at(self, value: datetime | None) -> datetime | None:
-        if value is not None:
-            assert value > datetime.now(), 'next_execution_at must be in the future'
-        return value
 
     asset: Mapped['CryptoAsset'] = relationship(
         'CryptoAsset',
@@ -79,3 +103,20 @@ class CryptoWatch(Base):
     __table_args__ = (
         sa.UniqueConstraint('asset_uuid', 'tg_chat_uuid'),
     )
+
+
+# https://docs.sqlalchemy.org/en/20/orm/events.html#sqlalchemy.orm.InstanceEvents.init
+@event.listens_for(CryptoWatch, 'init')
+def validate_next_execution_at(target, args, kwargs: dict) -> None:
+    print('validate_next_execution_at', target, args, kwargs)
+
+    value: datetime | None = kwargs.get('next_execution_at', None)
+    interval = kwargs.get('interval')
+
+    if value is not None:
+        assert value > datetime.now(), 'next_execution_at must be in the future'
+
+    if value is None:
+        value = WatchInterval.get_next_datetime(interval)
+
+    kwargs['next_execution_at'] = value

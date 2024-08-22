@@ -7,7 +7,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import InstrumentedAttribute, aliased, contains_eager
 
 from crypto.entities.crypto_asset import CryptoAsset
-from crypto.entities.crypto_favourite import CryptoFavourite
+from crypto.entities.crypto_favourite import CryptoFavourite, CryptoFavouriteStatus
 from crypto.entities.crypto_watch import CryptoWatch, CryptoWatchStatus, WatchInterval
 from postgres import PgRepo, pg_session
 from telegram.entities.tg_chat import TgChat
@@ -132,8 +132,7 @@ class CryptoWatchesRepo(PgRepo):
             .outerjoin_from(
                 CryptoWatch, CryptoFavourite,
                 sa.and_(
-                    CryptoFavourite.asset_uuid == CryptoWatch.asset_uuid,
-                    CryptoFavourite.tg_user_uuid == tg_user_uuid
+                    CryptoFavourite.asset_uuid == CryptoWatch.asset_uuid
                 ), full=True
             )
             .join_from(
@@ -145,10 +144,23 @@ class CryptoWatchesRepo(PgRepo):
             )
             .where(
                 sa.or_(
-                    CryptoWatch.uuid.is_(None),
                     sa.and_(
+                        CryptoFavourite.uuid.is_(None),
                         CryptoWatch.uuid.is_not(None),
                         CryptoWatch.tg_chat_uuid == tg_chat_uuid
+                    ),
+                    sa.and_(
+                        CryptoWatch.uuid.is_(None),
+                        CryptoFavourite.uuid.is_not(None),
+                        CryptoFavourite.tg_user_uuid == tg_user_uuid,
+                        CryptoFavourite.status == CryptoFavouriteStatus.ACTIVE
+                    ),
+                    sa.and_(
+                        CryptoWatch.uuid.is_not(None),
+                        CryptoWatch.tg_chat_uuid == tg_chat_uuid,
+                        CryptoFavourite.uuid.is_not(None),
+                        CryptoFavourite.tg_user_uuid == tg_user_uuid,
+                        CryptoFavourite.status == CryptoFavouriteStatus.ACTIVE
                     )
                 )
             )
@@ -167,8 +179,7 @@ class CryptoWatchesRepo(PgRepo):
             .outerjoin_from(
                 CryptoWatch, CryptoFavourite,
                 sa.and_(
-                    CryptoFavourite.asset_uuid == CryptoWatch.asset_uuid,
-                    CryptoFavourite.tg_user_uuid == tg_user_uuid
+                    CryptoFavourite.asset_uuid == CryptoWatch.asset_uuid
                 ), full=True
             )
             .join_from(
@@ -180,10 +191,23 @@ class CryptoWatchesRepo(PgRepo):
             )
             .where(
                 sa.or_(
-                    CryptoWatch.uuid.is_(None),
                     sa.and_(
+                        CryptoFavourite.uuid.is_(None),
                         CryptoWatch.uuid.is_not(None),
                         CryptoWatch.tg_chat_uuid == tg_chat_uuid
+                    ),
+                    sa.and_(
+                        CryptoWatch.uuid.is_(None),
+                        CryptoFavourite.uuid.is_not(None),
+                        CryptoFavourite.tg_user_uuid == tg_user_uuid,
+                        CryptoFavourite.status == CryptoFavouriteStatus.ACTIVE
+                    ),
+                    sa.and_(
+                        CryptoWatch.uuid.is_not(None),
+                        CryptoWatch.tg_chat_uuid == tg_chat_uuid,
+                        CryptoFavourite.uuid.is_not(None),
+                        CryptoFavourite.tg_user_uuid == tg_user_uuid,
+                        CryptoFavourite.status == CryptoFavouriteStatus.ACTIVE
                     )
                 )
             )
@@ -213,12 +237,9 @@ class CryptoWatchesRepo(PgRepo):
             select(CryptoWatch)
             .distinct(sa.tuple_(CryptoWatch.tg_chat_uuid, CryptoWatch.interval))
             .where(
-                sa.or_(
-                    # Execution is due
-                    CryptoWatch.next_execution_at <= sa.func.now(),
-                    # Haven't been executed yet
-                    CryptoWatch.next_execution_at.is_(None)
-                )
+                # At least on of the watches in the group must be due for entire group to be considered due
+                # A group is defined by tg_chat_uuid and interval
+                CryptoWatch.next_execution_at <= sa.func.now(),
             )
             .subquery()
         )

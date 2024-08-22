@@ -13,7 +13,7 @@ from .views.callbacks import WatchSelectIntervalCb, StopWatchingCb, StopWatching
     WatchlistFavouritesCb, WatchlistPageCb
 from .views.views import render_watch_select_text, render_start_watching_list, \
     render_watchlist_text, render_watchlist, \
-    render_stop_watching_confirm_text, render_stop_watching_confirm_reply_markup, WATCH_INTERVALS_TEXT
+    render_stop_watching_confirm_text, render_stop_watching_confirm_reply_markup
 from .. import TelegramBot
 import uuid
 
@@ -120,8 +120,7 @@ class BotWatchRouter:
                 asset_uuid=asset.uuid,
                 tg_chat_uuid=tg_user.chat.uuid,
                 interval=WatchInterval(callback_data.interval),
-                status=CryptoWatchStatus.ACTIVE,
-                next_execution_at=None
+                status=CryptoWatchStatus.ACTIVE
             )
         )
 
@@ -139,7 +138,7 @@ class BotWatchRouter:
         )
 
         await query.answer(
-            f'Started watching {asset.name}! You will receive notifications once in {WATCH_INTERVALS_TEXT[watch.interval]}.')
+            f'Started watching {asset.name}! You will receive notifications once in {WatchInterval.get_text(watch.interval)}.')
 
     @TelegramBot.handle_callback_query(StopWatchingConfirmationCb.filter())
     async def stop_watching_confirmation(

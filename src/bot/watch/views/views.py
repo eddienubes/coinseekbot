@@ -15,17 +15,6 @@ from .callbacks import WatchSelectIntervalCb, StartWatchingCb, StopWatchingCb, S
 from ...callbacks import DummyCb
 from crypto.crypto_watches_repo import Watchlist
 
-WATCH_INTERVALS_TEXT = {
-    WatchInterval.EVERY_10_SECONDS: '10 seconds',
-    WatchInterval.EVERY_30_MINUTES: '30 minutes',
-    WatchInterval.EVERY_1_HOUR: '1 hour',
-    WatchInterval.EVERY_3_HOURS: '3 hours',
-    WatchInterval.EVERY_6_HOURS: '6 hours',
-    WatchInterval.EVERY_12_HOURS: '12 hours',
-    WatchInterval.EVERY_DAY: '1 day',
-    # WatchInterval.EVERY_WEEK: '1 week',
-}
-
 
 def render_watch_select_text(
         asset: CryptoAsset,
@@ -68,7 +57,7 @@ async def render_start_watching_list(
     print('cbs', cbs)
 
     btns = [[InlineKeyboardButton(
-        text=WATCH_INTERVALS_TEXT[interval],
+        text=WatchInterval.get_text(interval),
         callback_data=cb
     )] for cb, interval in cbs]
 

@@ -16,16 +16,6 @@ from redis_client import RedisService
 from telegram.tg_chats_repo import TgChatsRepo
 from telegram.tg_users_repo import TgUsersRepo
 
-CRYPTO_INTERVAL_TO_TIMEDELTA = {
-    WatchInterval.EVERY_10_SECONDS: timedelta(seconds=10),
-    WatchInterval.EVERY_30_MINUTES: timedelta(minutes=30),
-    WatchInterval.EVERY_1_HOUR: timedelta(hours=1),
-    WatchInterval.EVERY_3_HOURS: timedelta(hours=3),
-    WatchInterval.EVERY_6_HOURS: timedelta(hours=6),
-    WatchInterval.EVERY_12_HOURS: timedelta(hours=12),
-    WatchInterval.EVERY_DAY: timedelta(days=1),
-}
-
 
 class BotWatchService:
     def __init__(
@@ -54,14 +44,7 @@ class BotWatchService:
         watches_to_upsert: list[CryptoWatch] = []
 
         for watch in watches:
-            next_execution_at = datetime.now() + CRYPTO_INTERVAL_TO_TIMEDELTA[watch.interval]
-
-            if not watch.next_execution_at:
-                watch.next_execution_at = next_execution_at
-                watches_to_upsert.append(watch)
-                continue
-
-            watch.next_execution_at = next_execution_at
+            watch.next_execution_at = WatchInterval.get_next_datetime(watch.interval)
 
             if watch.tg_chat.tg_id not in chats_to_send:
                 chats_to_send[watch.tg_chat.tg_id] = []
