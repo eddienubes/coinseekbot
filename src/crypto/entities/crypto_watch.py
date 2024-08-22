@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, cast
 import sqlalchemy as sa
 from marshmallow import validates
 from sqlalchemy import event
+from sqlalchemy.engine.default import DefaultExecutionContext
 from sqlalchemy.orm import mapped_column, Mapped, relationship, InstanceEvents
 
 from config import config
@@ -80,9 +81,26 @@ class CryptoWatch(Base):
         index=True
     )
 
+    # https://docs.sqlalchemy.org/en/20/core/defaults.html#context-sensitive-default-functions
+    @staticmethod
+    def default_next_execution_at(context: DefaultExecutionContext) -> datetime:
+        params = context.get_current_parameters()
+
+        value: datetime | None = params.get('next_execution_at', None)
+        interval = params.get('interval', None)
+
+        if value is not None:
+            assert value > datetime.now(), 'next_execution_at must be in the future'
+
+        if value is None and interval:
+            value = WatchInterval.get_next_datetime(interval)
+
+        return value
+
     next_execution_at: Mapped[datetime] = mapped_column(
         sa.TIMESTAMP(timezone=True),
-        nullable=False
+        nullable=False,
+        default=default_next_execution_at
     )
 
     asset: Mapped['CryptoAsset'] = relationship(
@@ -103,20 +121,3 @@ class CryptoWatch(Base):
     __table_args__ = (
         sa.UniqueConstraint('asset_uuid', 'tg_chat_uuid'),
     )
-
-
-# https://docs.sqlalchemy.org/en/20/orm/events.html#sqlalchemy.orm.InstanceEvents.init
-@event.listens_for(CryptoWatch, 'init')
-def validate_next_execution_at(target, args, kwargs: dict) -> None:
-    print('validate_next_execution_at', target, args, kwargs)
-
-    value: datetime | None = kwargs.get('next_execution_at', None)
-    interval = kwargs.get('interval')
-
-    if value is not None:
-        assert value > datetime.now(), 'next_execution_at must be in the future'
-
-    if value is None:
-        value = WatchInterval.get_next_datetime(interval)
-
-    kwargs['next_execution_at'] = value

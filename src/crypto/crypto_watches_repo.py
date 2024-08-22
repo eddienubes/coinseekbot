@@ -237,9 +237,12 @@ class CryptoWatchesRepo(PgRepo):
             select(CryptoWatch)
             .distinct(sa.tuple_(CryptoWatch.tg_chat_uuid, CryptoWatch.interval))
             .where(
-                # At least on of the watches in the group must be due for entire group to be considered due
-                # A group is defined by tg_chat_uuid and interval
-                CryptoWatch.next_execution_at <= sa.func.now(),
+                sa.and_(
+                    # At least on of the watches in the group must be due for entire group to be considered due
+                    # A group is defined by tg_chat_uuid and interval
+                    CryptoWatch.next_execution_at <= sa.func.now(),
+                    CryptoWatch.status == CryptoWatchStatus.ACTIVE
+                )
             )
             .subquery()
         )
