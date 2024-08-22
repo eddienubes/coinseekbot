@@ -23,7 +23,7 @@ def render_watch_select_text(
                 <b>{asset.ticker}</b> - <code>{asset.name}</code>
                 <b>Watch 👀</b>
 
-                <blockquote>Select notification interval 👇</blockquote>
+                <blockquote>🕐 Select notification interval 👇</blockquote>
             """)
 
     return text
@@ -63,7 +63,15 @@ async def render_start_watching_list(
 
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            *btns
+            *btns,
+            [
+                InlineKeyboardButton(
+                    text='❌ Cancel',
+                    callback_data=WatchlistFavouritesCb(
+                        tg_user_id=tg_user_id
+                    ).pack()
+                )
+            ]
         ]
     )
 
@@ -77,7 +85,8 @@ def render_watchlist(
     for watch, asset, fav in watchlist.hits:
         # Watch might not be defined, if it's of a favourite asset
         if watch and watch.status == CryptoWatchStatus.ACTIVE:
-            postfix = f'💫 - Watching 👀' if fav else ' - Watching 👀'
+            time = WatchInterval.get_text(watch.interval)
+            postfix = f'💫 - Watching 👀 - {time}' if fav else ' - Watching 👀 - {time}'
             cb_data = StopWatchingConfirmationCb(
                 tg_user_id=tg_user_id,
                 asset_uuid=str(asset.uuid)
