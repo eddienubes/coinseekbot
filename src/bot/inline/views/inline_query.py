@@ -21,9 +21,9 @@ async def inline_query_result(
     change_24h = float(round(latest_quote.percent_change_24h, 2))
     change_7d = float(round(latest_quote.percent_change_7d, 2))
 
-    change_1h_str = f'<b>+{change_1h}%</b>' if change_1h > 0 else change_1h
-    change_24h_str = f'<b>+{change_24h}%</b>' if change_24h > 0 else change_24h
-    change_7d_str = f'<b>+{change_7d}%</b>' if change_7d > 0 else change_7d
+    change_1h_str = f'<b>+{change_1h}%</b>' if change_1h > 0 else f'{change_1h}%'
+    change_24h_str = f'<b>+{change_24h}%</b>' if change_24h > 0 else f'{change_24h}%'
+    change_7d_str = f'<b>+{change_7d}%</b>' if change_7d > 0 else f'{change_7d}%'
 
     indicator_1h = '📉' if change_1h < 0 else '📈'
     indicator_24h = '📉' if change_24h < 0 else '📈'
