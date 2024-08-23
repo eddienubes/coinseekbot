@@ -12,7 +12,11 @@ class DummyCb(CallbackData, prefix='DummyCb'):
     pass
 
 
-class RedisCb[T](CallbackData, prefix='R'):
+class BaseCb(CallbackData, prefix='CB'):
+    tg_user_id: int
+
+
+class RedisCb[T](BaseCb, prefix='R'):
     id: str | None = None
 
     redis_prefix: ClassVar = 'cb'

@@ -1,6 +1,7 @@
 import logging
 from typing import TypeVar, Type
 
+from bot.callback_auth_middleware import CallbackAuthMiddleware
 from bot.chat.bot_chat_router import BotChatRouter
 from bot.engagement_middleware import EngagementMiddleware
 from bot.favourites.bot_favourites_router import BotFavouritesRouter
@@ -117,9 +118,15 @@ class Container(metaclass=Singleton):
         engagement_middleware = EngagementMiddleware(
             tg_service=tg_service
         )
+        cb_auth_middleware = CallbackAuthMiddleware(
+            tg_service=tg_service
+        )
 
         tg_bot = TelegramBot(
-            middlewares=[engagement_middleware],
+            middlewares=[
+                cb_auth_middleware,
+                engagement_middleware
+            ],
             redis=redis_service.redis
         )
 
